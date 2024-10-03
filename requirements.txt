@@ -1,0 +1,13 @@
+discord
+python-dotenv
+
+Pillow
+
+beautifulsoup4
+aiohttp
+requests
+
+sqlalchemy
+aiosqlite
+
+pytube

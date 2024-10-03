@@ -1,0 +1,49 @@
+Error ID: 8d7e46a1-ed80-4652-a7a1-278dff1f5e38
+Command: freemoney
+User: imnotsally2205 (ID: 698339875115630643)
+Guild: 🐧🐧🐧 (ID: 1275798785318064138)
+
+Traceback:
+Traceback (most recent call last):
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\discord\ext\commands\core.py", line 235, in wrapped
+    ret = await coro(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\projects\TogetherCode\cogs\economy\economy.py", line 28, in freemoney
+    user = self.get_user(user_ping.id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\projects\TogetherCode\cogs\economy\economy.py", line 17, in get_user
+    user = self.db.query(User).filter_by(id=user_id).first()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2728, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2362, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2237, in _execute_internal
+    conn = self._connection_for_bind(bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2106, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 103, in _go
+    self._raise_for_prerequisite_state(fn.__name__, current_state)
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 973, in _raise_for_prerequisite_state
+    raise sa_exc.PendingRollbackError(
+sqlalchemy.exc.PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: Python int too large to convert to SQLite INTEGER (Background on this error at: https://sqlalche.me/e/20/7s2a)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\discord\ext\commands\bot.py", line 1366, in invoke
+    await ctx.command.invoke(ctx)
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\discord\ext\commands\core.py", line 1029, in invoke
+    await injected(*ctx.args, **ctx.kwargs)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\projects\TogetherCode\.venv\Lib\site-packages\discord\ext\commands\core.py", line 244, in wrapped
+    raise CommandInvokeError(exc) from exc
+discord.ext.commands.errors.CommandInvokeError: Command raised an exception: PendingRollbackError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: Python int too large to convert to SQLite INTEGER (Background on this error at: https://sqlalche.me/e/20/7s2a)
