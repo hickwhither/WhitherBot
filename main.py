@@ -7,15 +7,12 @@ import dotenv
 class MyBot(commands.Bot):
 
     def __init__(self):
-        from models.prefix import SessionLocal
-        self.db = SessionLocal()
-
         dotenv.load_dotenv()
         self.env = os.environ
-        self.default_prefix = "w."
+        self.default_prefix = "w"
 
         super().__init__(
-            command_prefix = 'w.',
+            command_prefix = self.default_prefix,
             intents = discord.Intents.all(),
             application_id = self.env['APPLICATION_ID'],
             owner_ids = [
@@ -23,12 +20,6 @@ class MyBot(commands.Bot):
                 698339875115630643
             ]
         )
-    
-    async def get_prefix(self, message: Message):
-        if not message.guild: return self.default_prefix # DM
-        from models.prefix import Prefix
-        result = self.db.query(Prefix).filter_by(guild_id=message.guild.id).first()
-        return result.prefix if result else self.default_prefix
 
     
     async def setup_hook(self):

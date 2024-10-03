@@ -13,13 +13,10 @@ class User(UserBase):
     id = mapped_column(Integer, primary_key=True)
     credit = mapped_column(BigInteger, default=0)
 
-    pets = mapped_column(MutableDict.as_mutable(PickleType), default={})
-
-
-"<:rokf:950607318922457128>"
-"<:sus:952187167889817620>"
-"<:aheg:945699029902319676>"
-"<a:lick:945239728628834304>"
-"<a:catshake:1291031455140679690>"
-"<a:cvm:1291031442993709203>"
-"<:uwu:949960339036987462>"
+    zoo = mapped_column(MutableDict.as_mutable(PickleType), default={})
+    # animal: {'id': {'name': str, 'level': int, 'amount': 0, weapon:'wp_id'}}
+    team = mapped_column(MutableList.as_mutable(PickleType), default=[])
+    # ['id', 'id']
+    
+    inventory = mapped_column(MutableList.as_mutable(PickleType), default=[])
+    # item: {'type': 'Weapon', 'id': '71UWALS'}

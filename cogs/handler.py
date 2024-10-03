@@ -15,9 +15,7 @@ class Handler(commands.Cog):
         self.cooldown_message = {}
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error):
-        if isinstance(error, commands.CommandNotFound):
-            await ctx.reply("Không có lệnh :(")
-            return
+        if isinstance(error, commands.CommandNotFound): return
 
         if isinstance(error, commands.NSFWChannelRequired):
             await ctx.reply("NSFW channel 🔞")
