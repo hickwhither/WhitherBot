@@ -24,32 +24,31 @@ class GuraRev(Pet):
     sacrifice = 42069
 
     health = 8
-    strength = 1
-    resistance = 5
+    physical_attack = 1
+    magical_attack = 1
+    resistance_physical = 4
+    resistance_magical = 4
     intelligent = 1
     weapon_point = 4
 
     @property
     def icon(self):
-        if self.weapon.id == 'GuraReverseCard': return self._icon_holdingcard
-        return self._icon
-
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
+        try: hasattr(self, 'weapon')
+        except AttributeError: return self._icon
+        if not self.weapon: return self._icon
+        if self.weapon.id != 'GuraReverseCard': return self._icon
+        return self._icon_holdingcard
+        
 
 
 class GuraReverseCard(Weapon):
     icon=r"<:reversedcardgura:1291310797175259151>"
     information="Gura và Reversed Card?"
-    description=r"""
-        Khi bị đối thủ gây dame, Gura sẽ kích hoạt nội tại reversed card và hoàn trả lại dame cho kẻ tấn công Gura
-    """.strip()
 
     priority = 0
 
 
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
+    def on_game_start(self, *a, **kw):
         self.cost = 325
 
         if self.pet.id == 'GuraRev':
@@ -58,7 +57,8 @@ class GuraReverseCard(Weapon):
             self.game.log(f"{self.pet.name} choi saygex")
 
 
-    def description_specific(self):
+    @property
+    def description(self):
         return f"""
         Vũ khí bị động: Khi bị đối thủ gây dame, Gura sẽ kích hoạt reversed card và hoàn trả lại {self.pet.level+50/ 100}% - {self.pet.level+53/ 100}% cho kẻ tấn công Gura và tiêu tốn 325 WP và không thể bị chặn bởi weapon khác
         """.strip()

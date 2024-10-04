@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from models.utils import merge_metadata
 
-from user import UserBase
+from .user import UserBase
 
 DATABASE_URL = 'sqlite:///db/economy.db'
 

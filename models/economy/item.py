@@ -8,9 +8,9 @@ from sqlalchemy import *
 ItemBase = declarative_base()
 
 
-class Weapon(ItemBase):
+class WeaponModel(ItemBase):
     __tablename__ = "weapons"
-    id = mapped_column(String, primary_key=True)
+    id:Mapped[str] = mapped_column(String, primary_key=True)
     
-    weapon_id = mapped_column(String, nullable=False)
-    quality = mapped_column(Float, nullable=False)
+    weapon_id:Mapped[str] = mapped_column(String, nullable=False)
+    quality:Mapped[float] = mapped_column(Float, nullable=False)

@@ -7,16 +7,16 @@ from sqlalchemy import *
 
 UserBase = declarative_base()
 
-class User(UserBase):
+class UserModel(UserBase):
     __tablename__ = "users"
 
-    id = mapped_column(Integer, primary_key=True)
-    credit = mapped_column(BigInteger, default=0)
+    id:Mapped[int] = mapped_column(Integer, primary_key=True)
+    credit:Mapped[int] = mapped_column(BigInteger, default=0)
 
-    zoo = mapped_column(MutableDict.as_mutable(PickleType), default={})
-    # animal: {'id': {'name': str, 'level': int, 'amount': 0, weapon:'wp_id'}}
-    team = mapped_column(MutableList.as_mutable(PickleType), default=[])
+    zoo:Mapped[dict] = mapped_column(MutableDict.as_mutable(PickleType), default={})
+    # animal: {'asd': {'id': 'asd', 'name': str, 'level': int, 'amount': 0, weapon:'wp_id'}}
+    team:Mapped[list] = mapped_column(MutableList.as_mutable(PickleType), default=[])
     # ['id', 'id']
     
-    inventory = mapped_column(MutableList.as_mutable(PickleType), default=[])
+    inventory:Mapped[list] = mapped_column(MutableList.as_mutable(PickleType), default=[])
     # item: {'type': 'Weapon', 'id': '71UWALS'}

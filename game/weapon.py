@@ -29,8 +29,12 @@ class Weapon:
     pet: Pet
     quality: float
 
-    def __init__(self, game, pet, param:dict) -> None:
-        self.game = game
-        self.pet = pet
+    def __init__(self, param:dict) -> None:
         self.id = param.get('id')
         self.quality = param.get('quality')
+    
+    def on_game_start(self): pass
+    def start_game(self, pet:Pet, game:Game):
+        self.game = game
+        self.pet = pet
+        self.on_game_start()

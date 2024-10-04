@@ -2,7 +2,7 @@ import random
 import discord
 from discord.ext import commands
 
-from models.economy.user import User, SessionLocal
+from models.economy.user import UserModel
 from sqlalchemy import desc
 from datetime import datetime, timedelta
 
@@ -14,9 +14,9 @@ class Eco(commands.Cog):
         self.db = db
 
     def get_user(self, user_id):
-        user = self.db.query(User).filter_by(id=user_id).first()
+        user = self.db.query(UserModel).filter_by(id=user_id).first()
         if user: return user
-        user = User(id=user_id)
+        user = UserModel(id=user_id)
         self.db.add(user)
         self.db.commit()
         return user
@@ -38,7 +38,7 @@ class Eco(commands.Cog):
         await ctx.reply(f"👛 | Bạn hiện có {bt(user.credit)}")
     @commands.command(name="rank", help="Hiển thị bảng rank top 10", aliases=['top'])
     async def rank(self, ctx, amount:int = 10):
-        top_users = self.db.query(User).order_by(desc(User.credit)).limit(amount).all()
+        top_users = self.db.query(UserModel).order_by(desc(UserModel.credit)).limit(amount).all()
         amount = min(amount, len(top_users))
 
         if not top_users:

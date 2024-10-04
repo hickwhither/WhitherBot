@@ -21,6 +21,24 @@ class MyBot(commands.Bot):
             ]
         )
 
+        from models.prefix import SessionLocal
+        self.db = SessionLocal()
+    
+    async def on_message(self, message: Message):
+        prefixes = self._get_prefix(message)
+        if isinstance(prefixes, str): prefixes = [prefixes]
+        for prefix in prefixes:
+            if message.content.startswith(prefix):
+                message.content = self.default_prefix + message.content[len(prefix):].strip()
+                await self.process_commands(message)
+                break
+    
+    def _get_prefix(self, message: Message):
+        if not message.guild: return self.default_prefix
+        from models.prefix import Prefix
+        result = self.db.query(Prefix).filter_by(guild_id=message.guild.id).first()
+        return [result.prefix, self.default_prefix] if result else self.default_prefix
+
     
     async def setup_hook(self):
         for file in os.listdir('cogs'):

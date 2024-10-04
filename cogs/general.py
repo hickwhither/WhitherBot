@@ -12,23 +12,6 @@ class General(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.db = SessionLocal()  # Tạo session mới
-    
-    @commands.Cog.listener('on_message')
-    async def on_message(self, message: Message):
-        prefixes = self.get_prefix(message)
-        if isinstance(prefixes, str): prefixes = [prefixes]
-        print(message.content)
-        for prefix in prefixes:
-            if message.content.startswith(prefix):
-                message.content = self.bot.default_prefix + message.content[len(prefix):].strip()
-                await self.bot.process_commands(message)
-                break
-    
-    def get_prefix(self, message: Message):
-        if not message.guild: return self.bot.default_prefix
-        from models.prefix import Prefix
-        result = self.db.query(Prefix).filter_by(guild_id=message.guild.id).first()
-        return [result.prefix, self.bot.default_prefix] if result else self.bot.default_prefix
 
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)

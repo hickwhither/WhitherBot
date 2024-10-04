@@ -2,7 +2,7 @@ import discord
 from discord import Embed, Colour
 from discord.ext import commands
 
-from models.economy.user import User
+from models.economy.user import UserModel
 
 import asyncio
 import random
@@ -156,14 +156,14 @@ class RouletteGame:
     dead: bool = False
     is_playing: bool = False
 
-    def __init__(self, ctx:commands.Context, bet: int, user_data: User, db, bot: discord.Client):
+    def __init__(self, ctx:commands.Context, bet: int, user_data: UserModel, db, bot: discord.Client):
         self.ctx = ctx
         self.author = ctx.author
         self.bot = bot
 
         self.bet = bet
         self.prize = [round(self.bet*0.25)*i for i in range(1, 6)]
-        self.total_prize = 0
+        self.total_prize = bet
         self.bullet_position = random.randint(0, 5)
 
         self.user_data = user_data
@@ -222,7 +222,7 @@ class RouletteGame:
         if self.dead:
             embed.add_field(value='', name=f"Và đã mất tất {bt(self.total_prize)} =))", inline=False)
         else:
-            embed.add_field(value='', name=f"Tổng tiền thắng: {bt(self.total_prize)}", inline=False)
+            embed.add_field(value='', name=f"Tổng tiền nhận lại: {bt(self.total_prize)}", inline=False)
 
         return embed
 
@@ -251,16 +251,16 @@ class Death(commands.Cog):
         self.db = db
 
     def get_user(self, user_id):
-        user = self.db.query(User).filter_by(id=user_id).first()
+        user = self.db.query(UserModel).filter_by(id=user_id).first()
         if user: return user
-        user = User(id=user_id)
+        user = UserModel(id=user_id)
         self.db.add(user)
         self.db.commit()
         return user
 
     @commands.command(help="Should never try")
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def roulette(self, ctx: commands.Context, amount: int|str=1):
+    async def roulette(self, ctx: commands.Context, amount: int|str=100):
         user = self.get_user(ctx.author.id)
         if amount == "all":
             amount = user.credit

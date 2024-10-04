@@ -9,15 +9,22 @@ import os, importlib
 class GameException(Exception): ...
 class IdAlreadyExists(GameException):...
 
+
 class GameBase:
     pets: dict = {}
     weapons: dict = {}
 
+
     def __init__(self, url_to_cops:str = 'game/cops'):
+        self.load_cops(url_to_cops)
+    def load_cops(self, url_to_cops):
         for file in os.listdir(url_to_cops):
-            if not file.startswith('_') and (os.path.exists(os.path.join('cogs', file)) or file.endswith('.py')):
-                if file.endswith('.py'): file = file[:-3]
-                module_name = f"{url_to_cops.replace('/', '.')}.{file}"
+            if os.path.isdir(os.path.join(url_to_cops, file)):
+                    self.load_cops(os.path.join(url_to_cops, file))
+                    continue
+            if not file.startswith('_') and file.endswith('.py'):
+                file = file[:-3]
+                module_name = f"{url_to_cops.replace('/', '.').replace('\\\\', '.').replace('\\', '.')}.{file}"
                 try:
                     module = importlib.import_module(module_name)
 
@@ -29,6 +36,9 @@ class GameBase:
                 except Exception as e:
                     print(f'❌ Error {file}: {e}')
     
+    def get_pet_cls(self, id): return self.pets.get(id)
+    def get_weapon_cls(self, id): return self.weapons.get(id)
+
     def add_pet(self, pet):
         if self.pets.get(pet.__name__): raise IdAlreadyExists
         self.pets[pet.__name__] = pet
@@ -57,16 +67,21 @@ class Team:
 
         for param in params['pets']:
             param: dict
-            pet_class = self.gamebase.pets.get(param['id'])
-            pet: Pet = pet_class(self.game, team, param)
 
-            self.pets.append(pet)
-            
-            if not param.get('weapon'): pet.weapon = None
+            pet_class = self.gamebase.pets.get(param['id'])
+            pet: Pet = pet_class(param)
+
+            if not param.get('weapon'):
+                weapon = None
             else:
                 weapon_class = self.gamebase.weapons.get(param['weapon']['id'])
-                pet.weapon = weapon_class(self.game, pet, param['weapon'])
-                self.weapons.append(pet.weapon)
+                weapon: Weapon = weapon_class(param['weapon'])
+                self.weapons.append(weapon)
+            
+            pet.start_game(weapon, self.game, team)
+            if weapon: weapon.start_game(pet, self.game)
+            
+            self.pets.append(pet)
     
 
 

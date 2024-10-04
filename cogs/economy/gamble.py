@@ -2,7 +2,7 @@ import random
 import discord
 from discord.ext import commands
 
-from models.economy.user import User
+from models.economy.user import UserModel
 import asyncio
 
 from . import credit_icon, bt
@@ -13,9 +13,9 @@ class Gamble(commands.Cog):
         self.db = db
 
     def get_user(self, user_id):
-        user = self.db.query(User).filter_by(id=user_id).first()
+        user = self.db.query(UserModel).filter_by(id=user_id).first()
         if user: return user
-        user = User(id=user_id)
+        user = UserModel(id=user_id)
         self.db.add(user)
         self.db.commit()
         return user

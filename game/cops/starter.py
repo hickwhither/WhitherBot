@@ -22,34 +22,28 @@ class cuoilai(Pet):
     sacrifice=42069
 
     health =2
-    strength =2
-    resistance =2
+    physical_attack = 2
+    magical_attack = 2
+    resistance_physical = 2
+    resistance_magical = 0
     intelligent =2
     weapon_point =4
-
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
 
 
 class marble(Weapon):
     icon=r"<:marble:952774264900157480>"
-    info="Nhỏ nhưng nhanh, hai quả trung dai của bạn sẽ được ném đi với tốc độ cao và gây damage cực gắk"
-    description=r"""
-Ném 2 viên đá vào 2 kẻ địch bất kì, viên đầu gây 20-30% STR damage và viên còn lại gây 15-25% INT damage.
-Nếu hai viên trúng một kẻ địch thì đối phương sẽ nhận thêm 60-77% INT true damage
-Mỗi lần sử dụng mất 100-200 WP.
-    """.strip()
+    information="Nhỏ nhưng nhanh, hai quả trung dai của bạn sẽ được ném đi với tốc độ cao và gây damage cực gắk"
 
     priority=1
 
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
+    def on_game_start(self, *a, **kw):
         self.cost = quality_range(200,100,self.quality)
         self.str_damage = quality_range(0.2,0.3,self.quality)
         self.int_damage = quality_range(0.15,0.25,self.quality)
         self.extra_damage = quality_range(0.6,0.77,self.quality)
 
-    def description_specific(self):
+    @property
+    def description(self):
         return f"""
 Ném 2 viên đá vào 2 kẻ địch bất kì (có thể giống nhau), viên đầu gây {self.str_damage*100:.2f}% STR damage và viên còn lại gây {self.int_damage*100:.2f}% INT damage.
 Nếu hai viên trúng một kẻ địch thì đối phương sẽ nhận thêm {self.extra_damage*100:.2f}% INT true damage
@@ -64,7 +58,7 @@ Mỗi lần sử dụng mất {self.cost:.2f} WP.
         first_enemy:Pet = random.choice(enemies)
         second_enemy:Pet = random.choice(enemies)
         
-        first_damage = self.pet.strength*self.str_damage
+        first_damage = self.pet.physical_attack*self.str_damage
         self.game.log(f"{self.pet.name} ném viên bi thứ nhất vào {first_enemy.name} và gây {first_damage} damage")
         first_enemy.on_attacked(first_damage, self.pet, False)
 

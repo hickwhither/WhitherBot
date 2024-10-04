@@ -19,14 +19,10 @@ class snail(Pet):
     sell = 1
     sacrifice = 1
 
-    health = 8
-    strength = 1
-    resistance = 5
+    health = 5
+    physical_attack = 1
+    magical_attack = 0
+    resistance_physical = 3
+    resistance_magical = 3
     intelligent = 1
-    weapon_point = 4
-
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
-
-
-
+    weapon_point = 3
