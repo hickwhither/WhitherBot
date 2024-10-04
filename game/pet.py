@@ -39,8 +39,9 @@ class Pet:
     - `on_wp_replenish`: được hồi WP
 
     ## Add event listener(name, func)
-    - `on_attack`: bị tấn công, (damage, attacker, is_true) và trả về damage nếu có đổi giá trị
-    - `on_damaged`: bị sát thương, (damage, is_true) và trả về damage nếu có đổi giá trị
+    - `on_attack`: bị tấn công, (damage, type, attacker, is_true) và trả về damage nếu có đổi giá trị
+    - `on_damaged`: bị sát thương, (damage, type, is_true) và trả về damage nếu có đổi giá trị
+    - (type) là physical/magical
     - `on_healed`: được hồi máu, (health) và trả về health nếu có đổi giá trị
     - `on_wp_replenished`: được hồi wp, (wp) và trả về wp nếu có đổi giá trị
     """
@@ -107,7 +108,7 @@ class Pet:
         enemy_attack = random.choice(enemies)
 
         self.game.log(f"{self.name} đã tấn công {enemy_attack.name} và gây {self.physical_attack} damage")
-        enemy_attack.on_attacked(self.physical_attack, self, False)
+        enemy_attack.on_attacked(damage=self.physical_attack, type="physics", attacker=self, is_true=False)
     
     
     @property
@@ -148,7 +149,7 @@ class Pet:
         
         self.on_damaged(damage, type, is_true)
 
-    def on_damaged(self, damage:float, type:str = None, is_true:bool=False, *args, **kwargs):
+    def on_damaged(self, damage:float, type:str=None, is_true:bool=False, *args, **kwargs):
         
         self.game.indent_log += 1
         for func in self.events.get('on_damaged') or []:

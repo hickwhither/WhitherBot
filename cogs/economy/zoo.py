@@ -9,6 +9,7 @@ import asyncio
 
 from . import credit_icon, money_beauty
 
+import json
 import random
 import re
 
@@ -155,14 +156,14 @@ class Zoo(commands.Cog):
         
         pet.weapon = weapon
         pet.amount = user.zoo.get(pet_id)['amount']
-        await ctx.send(f"🌱 **|** {ctx.author.display_name} đã dùng các gem: Có nịt")
-        await ctx.send(f"🌿   **|** Bạn bat duoc trai tim em:  {pet.icon}")
+        await ctx.send(f"🌱 **|** {ctx.author.display_name} đã dùng các gem: Có nịt" + '\n' +
+                       f"🌿   **|** Bạn bat duoc trai tim em:  {pet.icon}")
 
     @commands.command(name="crate", help="Gacha oooo")
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def crate(self, ctx: commands.Context):
         # Lấy user từ database
-        user = self.get_user(ctx.author.id)
+        user:UserModel = self.get_user(ctx.author.id)
         
         # Kiểm tra nếu người chơi đủ tiền mở hòm
         if user.credit < 100:
@@ -178,8 +179,15 @@ class Zoo(commands.Cog):
         weapon_quality = random.uniform(0, 1)  # Chọn chất lượng vũ khí là một số float từ 0 đến 1
 
         # Thêm vũ khí vào kho của người chơi
-        self.inventory.append({'type': 'Weapon', 'id': weapon_id, 'quality': weapon_quality})
+        user.inventory.append({'type': 'Weapon', 'id': weapon_id, 'quality': weapon_quality})
 
         # Thông báo kết quả mở hòm
         await ctx.reply(f"Vì chưa gảnh làm nên xem đỡ: `{weapon_id}` with quality: `{weapon_quality:.2f}`.")
 
+    @commands.command(name="weapon", help="Gacha oooo", aliases=['w'])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def weapon(self, ctx: commands.Context):
+        user:UserModel = self.get_user(ctx.author.id)
+        weapons = list(filter(lambda x: x['type']=='Weapon', user.inventory))
+
+        await ctx.reply(f"Vì chưa gảnh làm nên xem đỡ: ```{json.dumps(weapons, indent=4)}```.")

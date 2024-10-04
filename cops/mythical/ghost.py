@@ -27,3 +27,12 @@ class ghost(Pet):
     resistance_magical = 1
     intelligent = 2
     weapon_point = 6
+
+    def __init__(self, param: dict):
+        super().__init__(param)
+        
+        self.add_event_listener('on_damaged', self.anti_physical_damage)
+
+    def anti_physical_damage(self, damage:float, type:str = None, is_true:bool=False, *a, **kw):
+        if type=='physical': return 0
+        return damage
