@@ -4,46 +4,62 @@ if TYPE_CHECKING:
     from .pet import Pet
     from .weapon import Weapon
 
-import os, importlib
+import os, sys, importlib
 
 class GameException(Exception): ...
 class IdAlreadyExists(GameException):...
 
 
 class GameBase:
-    pets: dict = {}
-    weapons: dict = {}
+    pets: dict
+    pet_aliases: dict
+    weapons: dict
 
 
-    def __init__(self, url_to_cops:str = 'game/cops'):
+    def __init__(self, url_to_cops:str = 'cops'):
+        self.pets = {}
+        self.pet_aliases = {}
+        self.weapons = {}
+        self.load_status = ''
         self.load_cops(url_to_cops)
+        
     def load_cops(self, url_to_cops):
         for file in os.listdir(url_to_cops):
             if os.path.isdir(os.path.join(url_to_cops, file)):
-                    self.load_cops(os.path.join(url_to_cops, file))
-                    continue
+                self.load_cops(os.path.join(url_to_cops, file))
+                continue
             if not file.startswith('_') and file.endswith('.py'):
                 file = file[:-3]
                 module_name = f"{url_to_cops.replace('/', '.').replace('\\\\', '.').replace('\\', '.')}.{file}"
                 try:
+                    if module_name in sys.modules:
+                        del sys.modules[module_name]
                     module = importlib.import_module(module_name)
 
                     if hasattr(module, 'setup'):
                         module.setup(self)
-                        print(f'✅ Loaded {file}')
+                        self.load_status += f'✅ Loaded {file}\n'
                     else:
-                        print(f'❌ {file} does not have a setup function')
+                        self.load_status += f'❌ {file} does not have a setup function\n'
                 except Exception as e:
-                    print(f'❌ Error {file}: {e}')
+                    self.load_status += f'❌ Error {file}: {e}\n'
     
     def get_pet_cls(self, id): return self.pets.get(id)
     def get_weapon_cls(self, id): return self.weapons.get(id)
 
-    def add_pet(self, pet):
-        if self.pets.get(pet.__name__): raise IdAlreadyExists
+    def add_pet(self, pet: Pet):
+        if self.pets.get(pet.__name__): raise IdAlreadyExists(f'Pet `{pet.__name__}` already exists')
         self.pets[pet.__name__] = pet
+        
+        aliases = set()
+        aliases.add(pet.__name__)
+        if hasattr(pet, 'aliases'): aliases.update(pet.aliases)
+        for name in aliases:
+            if self.pet_aliases.get(name): raise IdAlreadyExists(f'Aliases `{name}` already exists')
+            self.pet_aliases[name] = pet.__name__
+
     def add_weapon(self, weapon):
-        if self.weapons.get(weapon.__name__): raise IdAlreadyExists
+        if self.weapons.get(weapon.__name__): raise IdAlreadyExists(f'Weapon {weapon.__name__} already exists')
         self.weapons[weapon.__name__] = weapon
 
 class Team:

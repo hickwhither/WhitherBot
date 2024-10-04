@@ -7,7 +7,7 @@ from models.economy.user import UserModel
 import asyncio
 import random
 
-from . import credit_icon, bt
+from . import credit_icon, money_beauty
 
 color_fired = ['#360808', '#7F0808', '#B30808', '#CA0808', '#FF0808', '#F77B7A']
 
@@ -214,15 +214,15 @@ class RouletteGame:
         prize_dis = []
         for i in range(5):
             if i < self.shots_fired:
-                prize_dis.append(f'Prize #{i+1}: **{bt(self.prize[i])}** ✅')
+                prize_dis.append(f'Prize #{i+1}: **{money_beauty(self.prize[i])}** ✅')
             else:
-                prize_dis.append(f'Prize #{i+1}: {bt(self.prize[i])}')
+                prize_dis.append(f'Prize #{i+1}: {money_beauty(self.prize[i])}')
         embed.add_field(name='Prize', value='\n'.join(prize_dis))
 
         if self.dead:
-            embed.add_field(value='', name=f"Và đã mất tất {bt(self.total_prize)} =))", inline=False)
+            embed.add_field(value='', name=f"Và đã mất tất {money_beauty(self.total_prize)} =))", inline=False)
         else:
-            embed.add_field(value='', name=f"Tổng tiền nhận lại: {bt(self.total_prize)}", inline=False)
+            embed.add_field(value='', name=f"Tổng tiền nhận lại: {money_beauty(self.total_prize)}", inline=False)
 
         return embed
 
@@ -249,6 +249,7 @@ class Death(commands.Cog):
     def __init__(self, bot, db):
         self.bot = bot
         self.db = db
+        self.load_status = 'Ok'
 
     def get_user(self, user_id):
         user = self.db.query(UserModel).filter_by(id=user_id).first()
@@ -265,7 +266,7 @@ class Death(commands.Cog):
         if amount == "all":
             amount = user.credit
         if amount < 100:
-            return await ctx.reply(f"Số tiền phải ít nhất là {bt(100)}")
+            return await ctx.reply(f"Số tiền phải ít nhất là {money_beauty(100)}")
         game = RouletteGame(ctx, amount, user, self.db, self.bot)
         await game.start_game()
 

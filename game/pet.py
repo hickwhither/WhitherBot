@@ -11,11 +11,13 @@ import random
 class Pet:
     """
     ## Input Pramaters
+    - `aliases`: cách gọi khác -> `list[str] / Iterable[str]`
     - `icon`: icon của pet emoji -> `str`
     - `description`: mô tả kỹ năng -> `str`
     - `rank`: Rank của bé -> `str` : Common, Uncommon, Rare, Epic, Mythical, Gem, Legend, Fable, Bot, Hiden, Glitch, Fallen
     
     - Thông số cơ bản: `health`, `physical_attack`, `resistance_physical`, `intelligent`, `weapon_point` -> `int`
+    - `points`: giá trị pet
     - `sell`: nhận được khi sell
     - `sacrifice`: nhận được khi sacrifice
 
@@ -42,11 +44,12 @@ class Pet:
     - `on_healed`: được hồi máu, (health) và trả về health nếu có đổi giá trị
     - `on_wp_replenished`: được hồi wp, (wp) và trả về wp nếu có đổi giá trị
     """
+    aliases: list[str]
     icon: str
     information: str
     description: str
     rank: str
-
+    points: int
     sell: int
     sacrifice: int
 
@@ -77,9 +80,6 @@ class Pet:
         self.id = param.get('id')
         self.name = param.get('name') or self.__class__.__name__
         self.level = param['level']
-        
-        self.calculate_level()
-    
     
     def calculate_level(self):
         self.health = self.health * self.level * 2 + 500
@@ -94,6 +94,7 @@ class Pet:
     
     def on_game_start(self): pass
     def start_game(self, weapon:Weapon=None, game:Game=None, team:str=None):
+        self.calculate_level()
         self.game = game
         self.team = team
         self.weapon = weapon

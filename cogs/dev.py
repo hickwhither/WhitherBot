@@ -30,6 +30,7 @@ class Developer(commands.Cog):
         exts = exts.split(' ')
         no_extension = exts == ['']
         extensions = {}
+        self.bot.extra_log = []
         for file in os.listdir('./cogs') if no_extension else exts:
             if (not file.startswith('_') and (os.path.exists(os.path.join('cogs', file)) or file.endswith('.py'))) or not no_extension:
                 if file.endswith('.py'): file = file[:-3]
@@ -52,6 +53,10 @@ class Developer(commands.Cog):
                     content += f'\❌ `{file}`: **{error}**\n'
                 else:
                     content += f'\✅ `{file}`\n'
+
+        content += '\n\n'
+        for extra in self.bot.extra_log:
+            content += f"From {extra[0]}:\n```{extra[1]}```"
 
         await ctx.reply(content)
     

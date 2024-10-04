@@ -5,7 +5,7 @@ from discord.ext import commands
 from models.economy.user import UserModel
 import asyncio
 
-from . import credit_icon, bt
+from . import credit_icon, money_beauty
 
 class Gamble(commands.Cog):
     def __init__(self, bot, db):
@@ -48,18 +48,18 @@ class Gamble(commands.Cog):
 
         result = random.choices([True, False], weights=[0.6, 0.4])[0]
 
-        message: discord.Message = await ctx.send(f"{ctx.author.display_name} đã cược {bt(amount)} và chọn mặt {choice}\nĐồng xu đang bay... ⁉️")
+        message: discord.Message = await ctx.send(f"{ctx.author.display_name} đã cược {money_beauty(amount)} và chọn mặt {choice}\nĐồng xu đang bay... ⁉️")
         await asyncio.sleep(2)
 
         if result:
             user.credit += 2*amount
             await message.edit( content=
-f"""{ctx.author.display_name} đã cược {bt(amount)} và chọn mặt {choice}
-Đồng xu đang bay... {choice} và thắng được {bt(amount*2)}!"""
+f"""{ctx.author.display_name} đã cược {money_beauty(amount)} và chọn mặt {choice}
+Đồng xu đang bay... {choice} và thắng được {money_beauty(amount*2)}!"""
                 )
         else:
             await message.edit( content=
-f"""{ctx.author.display_name} đã cược {bt(amount)} và chọn mặt {choice}
+f"""{ctx.author.display_name} đã cược {money_beauty(amount)} và chọn mặt {choice}
 Đồng xu đang bay... {"heads" if choice=="tails" else "heads"} và mất tất =))"""
                 )
         self.db.commit()
@@ -87,7 +87,7 @@ f"""{ctx.author.display_name} đã cược {bt(amount)} và chọn mặt {choice
 
         message = await ctx.send(
 f"""` ___SLOTS___ `
-`             ` {ctx.author.display_name} đã cược {bt(amount)}
+`             ` {ctx.author.display_name} đã cược {money_beauty(amount)}
 `\\___________/`"""
             )
         
@@ -95,7 +95,7 @@ f"""` ___SLOTS___ `
             await message.edit(
                 content=
 f"""` ___SLOTS___ `
-` `{' | '.join(i for i in result)}` ` {ctx.author.display_name} đã cược {bt(amount)} {extra}
+` `{' | '.join(i for i in result)}` ` {ctx.author.display_name} đã cược {money_beauty(amount)} {extra}
 `\\___________/`"""
                 )
         
@@ -142,7 +142,7 @@ f"""` ___SLOTS___ `
             reward = amount * multiplier[emoji]
             user.credit += reward
             self.db.commit()
-            await editt(message, result, extra=f'đã quay trúng {emoji}, idol nhận được {bt(reward)}!')
+            await editt(message, result, extra=f'đã quay trúng {emoji}, idol nhận được {money_beauty(reward)}!')
         else:
             await editt(message, result, extra=f"và đã thua tất =))")
 

@@ -6,6 +6,9 @@ import os, sys, asyncio
 import time
 from uuid import uuid4
 
+import discord.ext
+import discord.ext.commands
+
 async def setup(bot) -> None:
     await bot.add_cog(Handler(bot))
 
@@ -15,16 +18,20 @@ class Handler(commands.Cog):
         self.cooldown_message = {}
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error):
-        if isinstance(error, commands.CommandNotFound): return
+        ignored = (commands.CommandNotFound, )
+        error = getattr(error, 'original', error)
 
-        if isinstance(error, commands.NSFWChannelRequired):
-            await ctx.reply("NSFW channel 🔞")
-            return
+        if isinstance(error, ignored): return
+        if isinstance(error, commands.NSFWChannelRequired): return await ctx.reply("NSFW channel 🔞")
+        if isinstance(error, commands.NotOwner): return await ctx.reply("Bạn không phải owner!")
+        if isinstance(error, commands.DisabledCommand): return await ctx.send(f'{ctx.command} has been disabled.')
+        if isinstance(error, commands.NoPrivateMessage):
+            try:
+                return await ctx.author.send(f'{ctx.command} can not be used in Private Messages.')
+            except discord.HTTPException: return
+
+        if isinstance(error, commands.UserInputError): return await ctx.reply(f"UserInputError: {str(error)}")
         
-        if isinstance(error, commands.NotOwner):
-            await ctx.reply("Bạn không phải owner!")
-            return
-
         if isinstance(error, commands.CommandOnCooldown):
             if self.cooldown_message.get(ctx.author.id):
                 return

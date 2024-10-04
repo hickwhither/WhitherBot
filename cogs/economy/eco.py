@@ -6,7 +6,7 @@ from models.economy.user import UserModel
 from sqlalchemy import desc
 from datetime import datetime, timedelta
 
-from . import credit_icon, bt
+from . import credit_icon, money_beauty
 
 class Eco(commands.Cog):
     def __init__(self, bot, db):
@@ -28,14 +28,14 @@ class Eco(commands.Cog):
         user = self.get_user(user_ping.id)
         user.credit += amount
         self.db.commit()
-        await ctx.send(f"{user_ping.mention} đã nhận được {bt(amount)} free! Hiện {user_ping.mention} đang có {bt(user.credit)}")
+        await ctx.send(f"{user_ping.mention} đã nhận được {money_beauty(amount)} free! Hiện {user_ping.mention} đang có {money_beauty(user.credit)}")
 
     # Basic
     @commands.command(name="cash", aliases=["c", "wallet","credit","money"], help=f"Hiển thị số {credit_icon} của bạn.")
     @commands.cooldown(3, 30, commands.BucketType.user)
     async def cash(self, ctx):
         user = self.get_user(ctx.author.id)
-        await ctx.reply(f"👛 | Bạn hiện có {bt(user.credit)}")
+        await ctx.reply(f"👛 | Bạn hiện có {money_beauty(user.credit)}")
     @commands.command(name="rank", help="Hiển thị bảng rank top 10", aliases=['top'])
     async def rank(self, ctx, amount:int = 10):
         top_users = self.db.query(UserModel).order_by(desc(UserModel.credit)).limit(amount).all()
@@ -56,7 +56,7 @@ class Eco(commands.Cog):
             username = member.display_name if member else f"User ID: {user.id}"
             embed.add_field(
                 name=f"{index}. {username}",
-                value=f"{bt(user.credit)}",
+                value=f"{money_beauty(user.credit)}",
                 inline=False
             )
 

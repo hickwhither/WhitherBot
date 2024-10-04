@@ -41,6 +41,7 @@ class MyBot(commands.Bot):
 
     
     async def setup_hook(self):
+        self.extra_log = []
         for file in os.listdir('cogs'):
             if not file.startswith('_') and (os.path.exists(os.path.join('cogs', file)) or file.endswith('.py')):
                 if file.endswith('.py'): file = file[:-3]
@@ -49,6 +50,10 @@ class MyBot(commands.Bot):
                     print(f'✅ Loaded {file}')
                 except Exception as e:
                     print(f'❌ Error {file}: {e}')
+        
+        print()
+        for extra in self.extra_log:
+            print(f"From {extra[0]}:\n{extra[1]}")
 
     async def on_ready(self):
         print(f'=== Logged as {self.user} ({self.user.id}) ===')

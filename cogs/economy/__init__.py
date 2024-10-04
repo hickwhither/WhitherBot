@@ -2,7 +2,7 @@ import discord
 from models.economy import get_session
 
 credit_icon = "💵"
-def bt(money:int): return f"{credit_icon} {money:,}"
+def money_beauty(money:int): return f"{credit_icon} {money:,}"
 
 
 async def setup(bot: discord.Client) -> None:
