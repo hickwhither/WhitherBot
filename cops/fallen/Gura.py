@@ -1,5 +1,5 @@
-from game.pet import Pet
-from game.weapon import Weapon
+from game.oop import Pet
+from game.oop import Weapon
 from game import GameBase, Game
 
 import random
@@ -10,7 +10,7 @@ def setup(gamebase: GameBase):
 
 def quality_range(s, e, q): return s+q*(e-s)
 
-from game.pet import Pet
+from game.oop import Pet
 
 class GuraRev(Pet):
     aliases=['gura', 'gurarev', 'guragay']
@@ -60,7 +60,7 @@ class GuraReverseCard(Weapon):
     @property
     def description(self):
         return f"""
-        Vũ khí bị động: Khi bị đối thủ gây dame, Gura sẽ kích hoạt reversed card và hoàn trả lại {self.pet.level+50/ 100}% - {self.pet.level+53/ 100}% cho kẻ tấn công Gura và tiêu tốn 325 WP và không thể bị chặn bởi weapon khác
+        Vũ khí bị động: Khi bị đối thủ gây dame, Gura sẽ kích hoạt reversed card và hoàn trả lại 50% - 53% và +1% dựa trên level pet cho kẻ tấn công Gura và tiêu tốn 325 WP và không thể bị chặn bởi weapon khác
         """.strip()
     
     def reflect_damage_vjp(self, damage: float, attacker: Pet, is_true:bool, *args, **kwargs):

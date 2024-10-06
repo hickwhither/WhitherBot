@@ -1,5 +1,5 @@
-from game.pet import Pet
-from game.weapon import Weapon
+from game.oop import Pet
+from game.oop import Weapon
 from game import GameBase, Game
 
 import random
@@ -9,12 +9,12 @@ def setup(gamebase: GameBase):
 
 def quality_range(s, e, q): return s+q*(e-s)
 
-from game.pet import Pet
+from game.oop import Pet
 
 class graccoon(Pet):
     aliases=['raccoon']
-    icon='<a:gzebra:1291681992349585428>'
-    description='giựt giựt'
+    icon='<a:ggraccoon:1291681990579322902>'
+    description='Không thể bị tấn công bởi STR'
     rank='Glitch'
     points=200000
 
@@ -24,7 +24,16 @@ class graccoon(Pet):
     health = 2
     physical_attack = 6
     magical_attack = 6
-    resistance_physical = 2
+    resistance_physical = float("inf") # ∞
     resistance_magical = 2
     intelligent = 4
     weapon_point = 3
+
+    def on_game_start(self):
+        self.add_event_listener('on_damaged', self.anti_physical_damage)
+
+    def anti_physical_damage(self, damage:float, type:str = None, is_true:bool=False, *a, **kw):
+        if is_true: return damage
+        if type=='physical': return 0
+        return damage
+

@@ -1,12 +1,12 @@
 import discord
-from models.economy import get_session
+from models.economy import SessionLocal
 
 credit_icon = "💵"
 def money_beauty(money:int): return f"{credit_icon} {money:,}"
 
 
 async def setup(bot: discord.Client) -> None:
-    db = get_session()()
+    db = SessionLocal()
 
     from .eco import Eco
     await bot.add_cog(Eco(bot, db))

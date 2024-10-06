@@ -5,15 +5,15 @@ from game import GameBase, Game
 import random
 
 def setup(gamebase: GameBase):
-    gamebase.add_pet(gzebra)
+    gamebase.add_pet(globster)
 
 def quality_range(s, e, q): return s+q*(e-s)
 
 from game.oop import Pet
 
-class gzebra(Pet):
-    aliases=['zebra']
-    icon='<a:gzebra:1291681992349585428>'
+class globster(Pet):
+    aliases=['globster']
+    icon='<a:globster:1292322982219219055>'
     description='Không thể bị tấn công bởi STR'
     rank='Glitch'
     points=200000
@@ -21,13 +21,13 @@ class gzebra(Pet):
     sell = 300000
     sacrifice = 200000
 
-    health = 3
-    physical_attack = 1
-    magical_attack = 5
+    health = 10
+    physical_attack = 3
+    magical_attack = 3
     resistance_physical = float("inf") # ∞
-    resistance_magical = 2
+    resistance_magical = 3
     intelligent = 4
-    weapon_point = 8
+    weapon_point = 1
 
 
     def on_game_start(self):
@@ -37,4 +37,3 @@ class gzebra(Pet):
         if is_true: return damage
         if type=='physical': return 0
         return damage
-

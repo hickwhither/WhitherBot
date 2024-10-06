@@ -1,5 +1,5 @@
-from game.pet import Pet
-from game.weapon import Weapon
+from game.oop import Pet
+from game.oop import Weapon
 from game import GameBase, Game
 
 import random
@@ -9,11 +9,11 @@ def setup(gamebase: GameBase):
 
 def quality_range(s, e, q): return s+q*(e-s)
 
-from game.pet import Pet
+from game.oop import Pet
 
 class penguin(Pet):
     icon='🐧'
-    description='con chim của tao không bay được'
+    description='10% tỉ lệ đỡ được damage'
     rank='Epic'
     points=250
 
@@ -27,3 +27,12 @@ class penguin(Pet):
     resistance_magical = 2
     intelligent = 2
     weapon_point = 6
+
+    def on_game_start(self):
+        self.add_event_listener('on_damage', self.reflect_dame)
+    
+    def reflect_dame(self, damage:float, type:str = None, is_true:bool=False, *a, **kw,):
+        if is_true: return damage
+        if random.uniform(0,1) <= 0.1:
+            return 0
+        return damage

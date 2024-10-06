@@ -1,5 +1,5 @@
-from game.pet import Pet
-from game.weapon import Weapon
+from game.oop import Pet
+from game.oop import Weapon
 from game import GameBase, Game
 
 import random
@@ -10,7 +10,7 @@ def setup(gamebase: GameBase):
 
 def quality_range(s, e, q): return s+q*(e-s)
 
-from game.pet import Pet
+from game.oop import Pet
 
 class cuoilai(Pet):
     icon='<:cl:1032661892268826675>'
@@ -33,6 +33,7 @@ class cuoilai(Pet):
 
 class marble(Weapon):
     icon=r"<:marble:952774264900157480>"
+    name=r"Hai hon dai"
     information="Nhỏ nhưng nhanh, hai quả trung dai của bạn sẽ được ném đi với tốc độ cao và gây damage cực gắk"
 
     priority=1
@@ -56,8 +57,8 @@ Mỗi lần sử dụng mất {self.cost:.2f} WP.
         self.pet.weapon_point -= self.cost
 
         enemies:list[Pet] = self.game.right.pets if self.pet.team=='left' else self.game.left.pets
-        first_enemy:Pet = random.choice(enemies)
-        second_enemy:Pet = random.choice(enemies)
+        first_enemy:Pet = random.choice(enemies.pets)
+        second_enemy:Pet = random.choice(enemies.pets)
         
         first_damage = self.pet.physical_attack*self.str_damage
         self.game.log(f"{self.pet.name} ném viên bi thứ nhất vào {first_enemy.name} và gây {first_damage} damage")

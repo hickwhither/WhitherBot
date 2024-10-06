@@ -1,5 +1,5 @@
-from game.pet import Pet
-from game.weapon import Weapon
+from game.oop import Pet
+from game.oop import Weapon
 from game import GameBase, Game
 
 import random
@@ -9,7 +9,7 @@ def setup(gamebase: GameBase):
 
 def quality_range(s, e, q): return s+q*(e-s)
 
-from game.pet import Pet
+from game.oop import Pet
 
 class squid(Pet):
     icon='<a:squid:1291663546639319040>'
@@ -25,5 +25,5 @@ class squid(Pet):
     magical_attack = 6
     resistance_physical = 2
     resistance_magical = 2
-    intelligent = 4
+    intelligent = 3
     weapon_point = 6

@@ -2,7 +2,7 @@ import discord
 from discord import Embed, Colour
 from discord.ext import commands
 
-from models.economy.user import UserModel
+from models.economy import UserModel
 
 import asyncio
 import random
@@ -181,7 +181,7 @@ class RouletteGame:
 
         while self.is_playing:
             def check(reaction:discord.Reaction, user):
-                return user == self.ctx.author and reaction.message.id == self.message.id
+                return user == self.ctx.author and reaction.message.id == self.message.id and str(reaction.emoji) in ["🔫","🛑"]
 
             reaction, user = await self.bot.wait_for('reaction_add', check=check)
             if str(reaction.emoji) == "🔫":

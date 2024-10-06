@@ -1,6 +1,6 @@
-from game.pet import Pet
-from game.weapon import Weapon
-from game import GameBase, Game
+from game.oop import Pet
+from game.oop import Weapon
+from game import GameBase, Game, Team
 
 import random
 
@@ -9,11 +9,11 @@ def setup(gamebase: GameBase):
 
 def quality_range(s, e, q): return s+q*(e-s)
 
-from game.pet import Pet
+from game.oop import Pet
 
 class hippopotamus(Pet):
     icon='🦛'
-    description='Trash'
+    description='25% Tỉ lệ đớp 1 phát vào đối thủ mất 70 True Dame (1 lần duy nhất)'
     rank='Epic'
     points=250
 
@@ -27,3 +27,18 @@ class hippopotamus(Pet):
     resistance_magical = 3
     intelligent = 3
     weapon_point = 4
+
+
+    def on_game_start(self):
+        self.is_bite = 0
+        return super().on_game_start()
+    
+    def active(self):
+        enemies:Team = self.game.left if self.team=='right' else self.game.right
+        attack_enemy: Pet = random.choice(enemies.pets)
+        if not self.is_bite:
+            if random.uniform(0,1) <= 0.25:
+                self.is_bite = 1
+                attack_enemy.deal_attack(damage=70, is_true=True, type='physical', attacker=self)
+            
+        return super().active()

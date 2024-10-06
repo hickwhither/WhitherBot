@@ -1,8 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .pet import Pet
-    from .weapon import Weapon
+    from .oop import *
+
+class Weapon: ...
+class Pet: ...
 
 import os, sys, importlib
 
@@ -14,12 +16,14 @@ class GameBase:
     pets: dict
     pet_aliases: dict
     weapons: dict
+    effects: dict
 
 
     def __init__(self, url_to_cops:str = 'cops'):
         self.pets = {}
         self.pet_aliases = {}
         self.weapons = {}
+        self.effects = {}
         self.load_status = ''
         self.load_cops(url_to_cops)
         
@@ -38,7 +42,6 @@ class GameBase:
 
                     if hasattr(module, 'setup'):
                         module.setup(self)
-                        self.load_status += f'✅ Loaded {file}\n'
                     else:
                         self.load_status += f'❌ {file} does not have a setup function\n'
                 except Exception as e:
@@ -62,6 +65,10 @@ class GameBase:
         if self.weapons.get(weapon.__name__): raise IdAlreadyExists(f'Weapon {weapon.__name__} already exists')
         self.weapons[weapon.__name__] = weapon
 
+    def add_effect(self, effect):
+        if self.effects.get(effect.__name__): raise IdAlreadyExists(f'Effect {effect.__name__} already exists')
+        self.effects[effect.__name__] = effect
+
 class Team:
     game: Game
     gamebase: GameBase
@@ -75,7 +82,7 @@ class Team:
         self.game = game
         self.gamebase = game.gamebase
 
-        self.name = params['name'] or f'{team} side'
+        self.name = params.get('name') or f'{team} side'
         self.team = team
 
         self.pets = []
@@ -84,13 +91,13 @@ class Team:
         for param in params['pets']:
             param: dict
 
-            pet_class = self.gamebase.pets.get(param['id'])
-            pet: Pet = pet_class(param)
+            pet_class = self.gamebase.pets.get(param['pet']['id'])
+            pet: Pet = pet_class(param['pet'])
 
             if not param.get('weapon'):
                 weapon = None
             else:
-                weapon_class = self.gamebase.weapons.get(param['weapon']['id'])
+                weapon_class = self.gamebase.weapons.get(param['weapon'].weapon_id)
                 weapon: Weapon = weapon_class(param['weapon'])
                 self.weapons.append(weapon)
             
@@ -113,7 +120,7 @@ class Game:
     turn: int = 0
     left: Team
     right: Team
-    weapons: list[Weapon]
+    priority: list[Weapon]
 
     logs: list
     indent_log: int
@@ -121,7 +128,7 @@ class Game:
     winner: str
     
 
-    def __init__(self, gamebase: GameBase, left:list[dict], right:list[dict]):
+    def __init__(self, gamebase: GameBase, left, right):
         self.gamebase = gamebase
 
         self.logs = []
@@ -132,8 +139,11 @@ class Game:
         self.left = Team(self, 'left', left)
         self.right = Team(self, 'right', right)
 
-        self.weapons = self.left.weapons + self.right.weapons
-        self.weapons.sort(key=lambda x: x.priority)
+        self.priority = self.left.weapons + self.right.weapons
+        def key(pet: Pet):
+            if pet.weapon==None:
+                ...
+        self.priority.sort(key=lambda x: x.priority)
 
         self.indent_log = 0
     
@@ -142,7 +152,7 @@ class Game:
 
     def start_game(self):
         self.status_log.append(self.turn_status())
-        for i in range(1, 51):
+        for i in range(1, 6):
             
             self.indent_log -= 1
             self.log(f"Lượt #{i}")
@@ -171,7 +181,7 @@ class Game:
                 
 
     def turn_fight(self):
-        for weapon in self.weapons:
+        for weapon in self.priority:
             if weapon.pet.health>0: weapon.active()
         
         for i in range(3):
