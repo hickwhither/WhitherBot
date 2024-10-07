@@ -12,6 +12,7 @@ def quality_range(s, e, q): return s+q*(e-s)
 from game.oop import Pet
 
 class gspider(Pet):
+    aliases=['spider']
     icon='<a:gspider:1291658292480708629>'
     description='uwu'
     rank='Gem'

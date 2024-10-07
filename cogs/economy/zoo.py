@@ -8,6 +8,7 @@ import asyncio
 
 from . import credit_icon, money_beauty
 
+import itertools
 import json
 import random
 import re
@@ -279,7 +280,7 @@ Mở khóa vũ khí: `w weapon unlock <weaponID>`
 
 
     @commands.group(name="team", help="Mời anh vào tim em 🤰")
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(4, 40, commands.BucketType.user)
     async def team(self, ctx:commands.Context):
         if ctx.invoked_subcommand:
             return
@@ -290,7 +291,8 @@ Mở khóa vũ khí: `w weapon unlock <weaponID>`
         embed = discord.Embed(description="""
 `w team rename <pet> <name>` Đổi tên pet
 `w team setname <name>` Đổi tên team
-`w team setup <pet> <weapon> | <pet> <weapon> ...` (tối đa 4 con) Để setup team, ví dụ: `w team setup monkey W21dsA | snail | gura`
+`w team setup <pet> <weapon> | <pet> <weapon> ...` (tối đa 4 con) 
+ Ví dụ: `w team setup monkey W21dsA | snail | gura`
         """)
 
         embed.set_author(name=f"{team.get('name') or ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
@@ -324,7 +326,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         await ctx.send(embed=embed)
     
     @team.command(name='rename')
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(4, 40, commands.BucketType.user)
     async def team_rename(self, ctx:commands.Context, pet_id:str, *, name:str):
         user:UserModel = self.get_user(ctx.author.id)
         
@@ -339,7 +341,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         await ctx.reply(f"{pet_id} đã được đổi tên thành {name}")
     
     @team.command(name='setname')
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(4, 40, commands.BucketType.user)
     async def team_setname(self, ctx:commands.Context, *, name:str):
         user:UserModel = self.get_user(ctx.author.id)
         user.team['name'] = name
@@ -349,7 +351,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         await ctx.reply(f"đã được đổi tên team thành {name}")
     
     @team.command(name='setup')
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(4, 40, commands.BucketType.user)
     async def team_setup(self, ctx:commands.Context, *, settxt:str):
         user:UserModel = self.get_user(ctx.author.id)
         
@@ -381,6 +383,11 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         if len(pets)==0 or len(pets)>4:
             return await ctx.reply(f"Số lượng pet phải nằm trong [1,4]")
         
+        # Check for unique pets
+        unique_pets = set(pet['pet'] for pet in pets)
+        if len(unique_pets) != len(pets):
+            return await ctx.reply("Mỗi pet trong team phải là duy nhất!")
+
         user.team['pets'] = pets
         user.team.update()
         self.db.commit()
@@ -431,9 +438,61 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         logs = ''
         
         for i in game.logs:
-            logs += i+'\n'
+            for j in i['content']: 
+                logs += j+'\n'
         
-        await ctx.reply(f'Chưa gảnh làm đâu nên xem đơn đi ```{logs}```')
-        with open('test.json', 'w', encoding='utf-8') as f: json.dump(game.status_log, f, indent=4)
+        game.logs
+
+        embed = discord.Embed()
+        embed.set_author(name=f'{ctx.author.name} vs {target.name}', icon_url=ctx.author.display_avatar.url)
+
+        # embed.add_field(name='', value='')
+        # embed.add_field(name='', value='')
+
+        message = await ctx.send(embed=embed)
+        cnt = 0
+
+        for i in game.logs:
+            status = i['status']
+            left = status['left']
+            right = status['right']
+
+            def create_display(team_status):
+                pet_status_list = team_status['pets']
+                display = [f'**{team_status['name']}**']
+                for pet_status in pet_status_list:
+                    single_display = ''
+                    single_display += f"L. {pet_status['level']} {pet_status['icon']} {pet_status['name']}\n"
+                    single_display += f"""
+<:Health_Points:1291709800182190183> `{pet_status['health']}` <:Intelligent_point:1291709803248488469> `{pet_status['intelligent']}` <:Weapon_Points:1291709815164502047> `{pet_status['weapon_point']}`
+<:Physical_Attack:1291709810374610984> `{pet_status['physical_attack']}` <:Physical_Resistance:1291709812496797696> `{pet_status['resistance_physical']}`
+<:Magical_Attack:1291709805710278697> `{pet_status['magical_attack']}` <:Magical_Resistance:1291709808512339998> `{pet_status['resistance_magical']}`
+            """.strip() + '\n'
+                    single_display += (pet_status['weapon'] if pet_status['weapon'] else '⬛') + " - "
+                    single_display += "".join(i for i in pet_status['effects'])
+                    display
+                return display
+
+            left_display = create_display(left)
+            right_display = create_display(right)
+            
+            embed.clear_fields()
+            for left, right in itertools.zip_longest(left_display, right_display, fillvalue=''):
+                embed.add_field(name="", value=left or '')
+                embed.add_field(name="", value=right or '')
+                embed.add_field(name="\u200b", value="\u200b", inline=False)
+            
+            embed.description = '\n'.join(j for j in i['content'])
+
+
+            embed.set_footer(text=f'Turn {cnt}/{len(game.logs)}')
+
+            await message.edit(embed=embed)
+            cnt += 1
+            await asyncio.sleep(2)
+
+        embed.set_footer(text=f'Ended in {cnt}. {game.winner_content}')
+        await message.edit(embed=embed)
+
 
     

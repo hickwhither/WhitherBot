@@ -5,14 +5,14 @@ from game import GameBase, Game
 import random
 
 def setup(gamebase: GameBase):
-    gamebase.add_pet(bpeacook)
+    gamebase.add_pet(bpeacock)
 
 def quality_range(s, e, q): return s+q*(e-s)
 
 from game.oop import Pet
 
-class bpeacook(Pet):
-    aliases=['peacook']
+class bpeacock(Pet):
+    aliases=['peacock']
     icon='<a:bpeacock:1292326994016604274>'
     description='wtf Trâu Thế'
     rank='Bot'

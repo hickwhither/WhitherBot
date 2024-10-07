@@ -5,13 +5,13 @@ from game import GameBase, Game
 import random
 
 def setup(gamebase: GameBase):
-    gamebase.add_pet(chiken)
+    gamebase.add_pet(rooster)
 
 def quality_range(s, e, q): return s+q*(e-s)
 
 from game.oop import Pet
 
-class chiken(Pet):
+class rooster(Pet):
     icon='🐓'
     description='Trash'
     rank='Uncommon'

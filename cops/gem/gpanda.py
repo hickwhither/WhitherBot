@@ -12,6 +12,7 @@ def quality_range(s, e, q): return s+q*(e-s)
 from game.oop import Pet
 
 class gpanda(Pet):
+    aliases=['panda']
     icon='<a:gpanda:1291657829371084810>'
     description='uwu'
     rank='Gem'

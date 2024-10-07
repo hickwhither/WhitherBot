@@ -12,6 +12,7 @@ def quality_range(s, e, q): return s+q*(e-s)
 from game.oop import Pet
 
 class gshrimp(Pet):
+    aliases=['shrimp']
     icon='<a:gshrimp:1291658286923382848>'
     description='uwu'
     rank='Gem'

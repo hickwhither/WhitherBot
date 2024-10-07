@@ -80,6 +80,7 @@ class Pet:
         self.id = param.get('id')
         self.name = param.get('name') or self.__class__.__name__
         self.level = param['level']
+        self.weapon = None
     
 
     # Game start
@@ -116,23 +117,23 @@ class Pet:
         if not self.events.get(name): self.events[name] = []
         self.events[name].append(func, *args, **kwargs)
     
-    def on_turn(self, turn):
+    def on_turn(self):
         skip_weapon_active, skip_active = False, False
 
         self.effects = filter(lambda x: x.is_alive, self.effects)
 
         for effect in self.effects:
             if effect.is_alive == False: continue
-            swa, sa = effect.on_turn(turn) or False, False
+            swa, sa = effect.on_turn() or False, False
             skip_weapon_active = swa or skip_weapon_active
             skip_active = sa or skip_active
         
         for func in self.events.get('on_turn') or []:
-            swa, sa = func(turn) or False, False
+            swa, sa = func() or False, False
             skip_weapon_active = swa or skip_weapon_active
             skip_active = sa or skip_active
         
-        if not skip_weapon_active: self.weapon.active()
+        if not skip_weapon_active and self.weapon: self.weapon.active()
         if not skip_active: self.active()
 
     def on_apply_effect(self, effectid:str, *args, **kwargs):
@@ -217,22 +218,21 @@ class Pet:
     @property
     def status(self):
         return {
-            'id': self.id,
             'icon': self.icon,
             'name': self.name,
             'level': self.level,
-            'weapon': self.weapon.id if self.weapon else None,
-            'pramaters':{
-                'health': self.health,
-                'physical_attack': self.physical_attack,
-                'magical_attack': self.magical_attack,
-                'resistance_physical': self.resistance_physical,
-                'resistance_magical': self.resistance_magical,
-                'intelligent': self.intelligent,
-                'weapon_point': self.weapon_point,
-                'max_health': self.max_health,
-                'max_wp': self.max_wp,
-            }
+            'weapon': self.weapon.icon if self.weapon else None,
+            'effects': [i.icon for i in self.effects],
+
+            'health': self.health,
+            'physical_attack': self.physical_attack,
+            'magical_attack': self.magical_attack,
+            'resistance_physical': self.resistance_physical,
+            'resistance_magical': self.resistance_magical,
+            'intelligent': self.intelligent,
+            'weapon_point': self.weapon_point,
+            'max_health': self.max_health,
+            'max_wp': self.max_wp,
         }
 
     def active(self):
@@ -273,12 +273,13 @@ class Effect:
 
     def __init__(self, pet) -> None:
         self.pet = pet
-
+        if not hasattr(self, 'name'): self.name = self.id
 
 class Weapon:
     """
     ## Input Pramaters
     - `icon`: icon của weapon emoji -> `str`
+    - `name`: tên weapon
     - `information`: kể chuyện -> 'str'
     - `description`: mô tả kỹ năng -> `str`
 
@@ -313,6 +314,19 @@ class Weapon:
         self.pet = pet
         self.on_game_start()
 
-    def on_turn(self):
-        self.active()
+
+class Area:
+    """
+    ## Thông số đầu vào
+    - `icon`: biểu tượng của khu vực -> `str`
+    - `name`: tên khu vực -> `str`
+    - `description`: mô tả khu vực -> `str`
+    - `available_pets`: danh sách các pet có sẵn trong khu vực -> `list[str]`
+    - `available_weapons`: danh sách các vũ khí có sẵn trong khu vực -> `list[str]`
+    """
+    icon: str
+    name: str
+    description: str
+    available_pets: list[str]
+    available_weapons: list[str]
 

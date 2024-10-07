@@ -3,9 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .oop import *
 
-class Weapon: ...
-class Pet: ...
-
+import math
 import os, sys, importlib
 
 class GameException(Exception): ...
@@ -24,6 +22,8 @@ class GameBase:
         self.pet_aliases = {}
         self.weapons = {}
         self.effects = {}
+        self.areas = {}
+        
         self.load_status = ''
         self.load_cops(url_to_cops)
         
@@ -69,6 +69,12 @@ class GameBase:
         if self.effects.get(effect.__name__): raise IdAlreadyExists(f'Effect {effect.__name__} already exists')
         self.effects[effect.__name__] = effect
 
+    def add_area(self, area):
+        if self.areas.get(area.__name__):
+            raise IdAlreadyExists(f'Area {area.__name__} already exists')
+        self.areas[area.__name__] = area
+
+
 class Team:
     game: Game
     gamebase: GameBase
@@ -106,6 +112,14 @@ class Team:
             
             self.pets.append(pet)
     
+    @property
+    def status(self):
+        status = {
+            'name': self.name,
+            'pets': []
+        }
+        for pet in self.pets: status['pets'].append(pet.status)
+        return status
 
 
 class Game:
@@ -120,12 +134,13 @@ class Game:
     turn: int = 0
     left: Team
     right: Team
-    priority: list[Weapon]
+    priority: list[Pet]
 
     logs: list
     indent_log: int
     status_log: list
     winner: str
+    winner_content: str
     
 
     def __init__(self, gamebase: GameBase, left, right):
@@ -139,68 +154,71 @@ class Game:
         self.left = Team(self, 'left', left)
         self.right = Team(self, 'right', right)
 
-        self.priority = self.left.weapons + self.right.weapons
+        self.priority = self.left.pets + self.right.pets
         def key(pet: Pet):
-            if pet.weapon==None:
-                ...
-        self.priority.sort(key=lambda x: x.priority)
+            if pet.weapon==None: return math.inf
+            return pet.weapon.priority
+        self.priority.sort(key=key)
 
         self.indent_log = 0
     
     def log(self, txt):
-        self.logs.append(f"{' '*self.indent_log*2}{txt}")
+        self.last_log['content'].append(f"{' '*self.indent_log*2}{txt}")
 
     def start_game(self):
-        self.status_log.append(self.turn_status())
+        self.logs.append({
+            'status': self.status,
+            'content': ['No logs this turn']
+        })
+        self.winner_content = None
+        
         for i in range(1, 6):
             
+            self.last_log = {
+                'content': [],
+                'status': {}
+            }
+
             self.indent_log -= 1
             self.log(f"Lượt #{i}")
             self.indent_log += 1
 
             self.turn = i
             self.turn_fight()
-            self.status_log.append(self.turn_status())
+            self.status_log.append(self.status)
             left_death, right_death = self.check_death()
 
-            self.log("")
+            self.last_log['status'] = self.status
+            self.logs.append(self.last_log)
 
             if left_death or right_death:
                 self.indent_log -= 1
-                if right_death and not left_death:
+                if left_death and right_death:
+                    self.winner_content = 'Không ai còn sống cả!'
+                elif right_death:
                     self.winner = 'left'
-                    self.log(f"{self.left.name} win!")
-                elif left_death and not right_death:
+                    self.winner_content = f'{self.left.name} thắng!'
+                elif left_death:
                     self.winner = 'right'
-                    self.log(f"{self.right.name} win!")
-                else:
-                    self.log(f"Hòa! Cả hai đều chết!")
+                    self.winner_content = f'{self.right.name} thắng!'
+                    
                 break
+                
         self.indent_log -= 1
-        if self.winner == 'tie': self.log(f"Hòa! Trận đấu kéo dài quá lâu!")
+        if not self.winner_content: self.winner_content = "Trận đấu quá lâu!"
                 
 
     def turn_fight(self):
-        for weapon in self.priority:
-            if weapon.pet.health>0: weapon.active()
-        
-        for i in range(3):
-            # print(i, self.left.pets)
-            if i < len(self.left.pets):
-                if self.left.pets[i].health>0: self.left.pets[i].active()
-            if i < len(self.right.pets):
-                if self.right.pets[i].health>0: self.right.pets[i].active()
+        for pet in self.priority:
+            if pet.weapon: pet.weapon.active()
+            pet.on_turn()
     
-    
-    def turn_status(self):
-        status = {
-            'left': [],
-            'right': []
+    @property
+    def status(self):
+        return {
+            'left': self.left.status,
+            'right': self.right.status
         }
-        for pet in self.left.pets: status['left'].append(pet.status)
-        for pet in self.right.pets: status['right'].append(pet.status)
-        
-        return status
     
     def check_death(self):
         left_death = True
