@@ -104,7 +104,7 @@ class Zoo(commands.Cog):
             content += f"{self.gamebase.rank_icons[rank]}  {row}\n"
         content += f"**Zoo Points: {zoo_points:,}**"
         
-        await ctx.send(content)
+        await ctx.reply(content, mention_author=False)
     
     @commands.command(name="dex", help="thống số pet")
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -144,7 +144,7 @@ class Zoo(commands.Cog):
 """.strip()
         embed.add_field(name='',value=f'{blahlbah}',inline=False)
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed, mention_author=False)
 
     @commands.group(name="weapon", help='Đồ tự vệ', aliases = ['w'])
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -198,7 +198,7 @@ Mở khóa vũ khí: `w weapon unlock <weaponID>`
         embed.add_field(name='', value=weapon.information, inline=False)
         embed.add_field(name='', value=weapon.description, inline=False)
         
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed, mention_author=False)
 
     @weapon.command(name='lock')
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -243,6 +243,8 @@ Mở khóa vũ khí: `w weapon unlock <weaponID>`
         cnt = 1
         for pet_param in team.get('pets') or []:
             petpr = user.zoo.get(pet_param['pet'])
+            print(user.zoo)
+            print(petpr)
             pet_class = self.gamebase.pets.get(petpr['id'])
             pet: Pet = pet_class(petpr)
 
@@ -265,7 +267,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
 """.strip())
             cnt += 1
         
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed, mention_author=False)
     
     @team.command(name='rename')
     @commands.cooldown(4, 40, commands.BucketType.user)
@@ -280,7 +282,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         user.zoo.update()
         self.db.commit()
 
-        await ctx.reply(f"{pet_id} đã được đổi tên thành {name}")
+        await ctx.reply(f"{pet_id} đã được đổi tên thành {name}", mention_author=False)
     
     @team.command(name='setname')
     @commands.cooldown(4, 40, commands.BucketType.user)
@@ -290,7 +292,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         user.team.update()
         self.db.commit()
 
-        await ctx.reply(f"đã được đổi tên team thành {name}")
+        await ctx.reply(f"đã được đổi tên team thành {name}", mention_author=False)
     
     @team.command(name='setup')
     @commands.cooldown(4, 40, commands.BucketType.user)
@@ -334,7 +336,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         user.team.update()
         self.db.commit()
 
-        await ctx.reply(f"Sửa đổi team thành công!")
+        await ctx.reply(f"Sửa đổi team thành công!", mention_author=False)
 
 
     @commands.command(name='battle', help='Thắng bại tại nạp tiền vào devs', aliases = ['b'])
@@ -476,7 +478,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
 
                 rewards.append(f"{weapon.icon} {weapon.name}")
             
-            await ctx.reply(f"Chơi cả lò trái tim em...\n{'\n'.join(rewards)}")
+        await ctx.reply(f"Chơi cả lò trái tim em...\n{'\n'.join(rewards)}", mention_author=False)
         
         user.gems.update()
         self.db.commit()
@@ -488,6 +490,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
         if ctx.invoked_subcommand: return
         user: UserModel = self.get_user(ctx.author.id)
         embed = discord.Embed(title="Thông tin săn bắn", color=discord.Color.green())
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.display_avatar.url)
         embed.description = """
 Đi săn các thứ oooo
 
@@ -546,7 +549,7 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
                     pet_id = random.choices(pets, weights)[0]
                     pet:Pet = self.gamebase.pets.get(pet_id)()
                     pets_reward.add(pet.icon)
-                    if not user.zoo.get(pet_id): user.zoo[pet_id] = {'id': 'asd', 'level':0, 'xp':0, 'amount': 0, 'caught': 0}
+                    if not user.zoo.get(pet_id): user.zoo[pet_id] = {'id': pet_id, 'level':0, 'xp':0, 'amount': 0, 'caught': 0}
                     user.zoo[pet_id]['amount'] += 1
                     user.zoo[pet_id]['caught'] += 1
                 
@@ -572,7 +575,7 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
         else:
             embed.add_field(name="Trạng thái", value="Không trong chuyến săn", inline=False)
         
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed, mention_author=False)
 
     @hunt.command(name="area", help="anh oi em muon di tron")
     async def area(self, ctx:commands.Context, name:str=None):
@@ -594,7 +597,7 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
         embed = discord.Embed(title="Danh sách các vùng đi săn", color=discord.Color.green())
         for name, area in self.gamebase.areas.items():
             embed.add_field(name=name, value=area['description'], inline=False)
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed, mention_author=False)
 
 
     @hunt.command(name="setup", help="Thiết lập chuyến đi săn")
@@ -640,7 +643,7 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
         user.hunt.update()
         self.db.commit()
         
-        await ctx.send(f"""Đã thiết lập chuyến đi săn ở {area} Chuyến đi sẽ kết thúc <t:{user.hunt['end']}:R>.
+        await ctx.reply(f"""Đã thiết lập chuyến đi săn ở {area} Chuyến đi sẽ kết thúc <t:{user.hunt['end']}:R>.
 Các đá quý đã sử dụng: {(' '.join(self.gamebase.increase_gems.get(i) or self.gamebase.xp_gems.get(i)  for i in gem)) if gem else 'Không có'}
-""")
+""", mention_author=False)
 
