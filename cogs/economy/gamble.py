@@ -2,15 +2,15 @@ import random
 import discord
 from discord.ext import commands
 
-from models.economy import UserModel
+from models import UserModel
 import asyncio
 
 from . import credit_icon, money_beauty
 
 class Gamble(commands.Cog):
-    def __init__(self, bot, db):
+    def __init__(self, bot):
         self.bot = bot
-        self.db = db
+        self.db = bot.db
 
     def get_user(self, user_id):
         user = self.db.query(UserModel).filter_by(id=user_id).first()

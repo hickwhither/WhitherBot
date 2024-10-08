@@ -12,7 +12,7 @@ class Pet:
     - `aliases`: cách gọi khác -> `list[str] / Iterable[str]`
     - `icon`: icon của pet emoji -> `str`
     - `description`: mô tả kỹ năng -> `str`
-    - `rank`: Rank của bé -> `str` : Common, Uncommon, Rare, Epic, Mythical, Gem, Legend, Fable, Bot, Hiden, Glitch, Fallen
+    - `rarity`: độ hiếm -> `float`
     
     - Thông số cơ bản: `health`, `physical_attack`, `resistance_physical`, `intelligent`, `weapon_point` -> `int`
     - `points`: giá trị pet
@@ -36,7 +36,7 @@ class Pet:
     - `apply_effect`: gây hiệu ứng lên pet này (id) (gọi on_apply_effect)
 
     ## Add event listener(name, func)
-    - `on_turn`: khi tới lượt bản thân đi, trả về (skip_weapon_active, skip_active) tức là bỏ qua sử dụng vũ khi và bỏ qua đánh thường
+    - `on_turn`: khi tới lượt bản thân đi, trả về (skip_active) tức là bị bỏ lượt
     - `on_appy_effect`: bị dính hiệu ứng (effectid, type('buff'/'debuff')) trả về True/False nếu hiệu ứng có hiệu
     - `on_attacked`: bị tấn công, (damage, type, attacker, is_true) và trả về damage nếu có đổi giá trị
     - `on_damaged`: bị sát thương, (damage, type, is_true) và trả về damage nếu có đổi giá trị (type là physical/magical)
@@ -47,7 +47,8 @@ class Pet:
     icon: str
     information: str
     description: str
-    rank: str
+    rank: str # Shouldn't be touch
+    rarity: float
     points: int
     sell: int
     sacrifice: int
@@ -74,12 +75,12 @@ class Pet:
     events: dict[list[Callable]]
     effects: list[Effect]
 
-    def __init__(self, param:dict):
+    def __init__(self, param:dict={}):
         self.param = param
         
         self.id = param.get('id')
         self.name = param.get('name') or self.__class__.__name__
-        self.level = param['level']
+        self.level = param.get('level') or 0
         self.weapon = None
     
 
@@ -118,22 +119,19 @@ class Pet:
         self.events[name].append(func, *args, **kwargs)
     
     def on_turn(self):
-        skip_weapon_active, skip_active = False, False
+        skip_active = False, False
 
         self.effects = filter(lambda x: x.is_alive, self.effects)
 
         for effect in self.effects:
             if effect.is_alive == False: continue
-            swa, sa = effect.on_turn() or False, False
-            skip_weapon_active = swa or skip_weapon_active
+            sa = effect.on_turn() or False, False
             skip_active = sa or skip_active
         
         for func in self.events.get('on_turn') or []:
-            swa, sa = func() or False, False
-            skip_weapon_active = swa or skip_weapon_active
+            sa = func() or False, False
             skip_active = sa or skip_active
-        
-        if not skip_weapon_active and self.weapon: self.weapon.active()
+    
         if not skip_active: self.active()
 
     def on_apply_effect(self, effectid:str, *args, **kwargs):
@@ -144,11 +142,11 @@ class Pet:
         self.game.indent_log += 1
         for effect in self.effects:
             if effect.is_alive == False: continue
-            f = effect.on_appy_effect(effectid, effect.type, *args, **kwargs)
+            f = effect.on_appy_effect(effectid=effectid, type=effect.type, *args, **kwargs)
             if f==False: allow_to_apply = False
         
         for func in self.events.get('on_apply_effect') or []:
-            f = func(effectid, effect.type, *args, **kwargs)
+            f = func(effectid=effectid, type=effect.type, *args, **kwargs)
             if f==False: allow_to_apply = False
         self.game.indent_log -= 1
 
@@ -160,10 +158,10 @@ class Pet:
         self.game.indent_log += 1
         for effect in self.effects:
             if effect.is_alive == False: continue
-            damage = effect.on_attacked(damage, type, attacker, is_true, *args, **kwargs) or damage
+            damage = effect.on_attacked(damage=damage, type=type, attacker=attacker, is_true=is_true, *args, **kwargs) or damage
 
         for func in self.events.get('on_attacked') or []:
-            damage = func(damage, type, attacker, is_true, *args, **kwargs) or damage
+            damage = func(damage=damage, type=type, attacker=attacker, is_true=is_true, *args, **kwargs) or damage
         self.game.indent_log -= 1
         
         self.on_damaged(damage, type, is_true)
@@ -172,10 +170,10 @@ class Pet:
         self.game.indent_log += 1
         for effect in self.effects:
             if effect.is_alive == False: continue
-            damage = effect.on_damaged(damage, type, is_true, *args, **kwargs) or damage
+            damage = effect.on_damaged(damage=damage, type=type, is_true=is_true, **kwargs) or damage
 
         for func in self.events.get('on_damaged') or []:
-            damage = func(damage, type, is_true, *args, **kwargs) or damage
+            damage = func(damage=damage, type=type, is_true=is_true, *args, **kwargs) or damage
         self.game.indent_log -= 1
         
         if not is_true: 
@@ -190,10 +188,10 @@ class Pet:
         self.game.indent_log += 1
         for effect in self.effects:
             if effect.is_alive == False: continue
-            damage = effect.on_healed(h, *args, **kwargs) or damage
+            damage = effect.on_healed(health=h, *args, **kwargs) or damage
 
         for func in self.events.get('on_healed') or []:
-            damage = func(h, *args, **kwargs) or damage
+            damage = func(health=h, *args, **kwargs) or damage
         self.game.indent_log -= 1
 
         self.health += h
@@ -204,10 +202,10 @@ class Pet:
         self.game.indent_log += 1
         for effect in self.effects:
             if effect.is_alive == False: continue
-            damage = effect.on_wp_replenished(wp, *args, **kwargs) or damage
+            damage = effect.on_wp_replenished(weapoint_point=wp, *args, **kwargs) or damage
 
         for func in self.events.get('on_damaged') or []:
-            damage = func(wp, *args, **kwargs) or damage
+            damage = func(weapoint_point=wp, *args, **kwargs) or damage
         self.game.indent_log -= 1
 
         self.weapon_point += wp
@@ -236,6 +234,8 @@ class Pet:
         }
 
     def active(self):
+        if self.weapon: self.weapon.active()
+
         enemies: list[Pet] = self.game.right.pets if self.team=='left' else self.game.left.pets
         enemy_attack = random.choice(enemies)
 

@@ -3,31 +3,38 @@ from discord.ext import commands
 
 from game.oop import Pet
 from game.oop import Weapon
-from models.economy import *
+from models import *
 import asyncio
 
 from . import credit_icon, money_beauty
 
+import math
+import time
 import itertools
 import json
 import random
 import re
 import string
 
-rarity_to_emoji = {
-    'Common':'<:common:1291671340037836841>',
-    'Uncommon':'<:uncommon:1291671369490366464>',
-    'Rare':'<:rare:1291671367338692609>',
-    'Epic':'<:epic:1291671341984120883>',
-    'Mythical':'<:mythical:1291671365199335486>',
-    'Gem':'<a:gem:1291671352146788354>',
-    'Legend':'<a:legend:1291671363089596517>',
-    'Fable':'<a:fable:1291671349160575047>',
-    'Bot':'<a:bot:1291671338079227914>',
-    'Hidden':'<a:hidden:1291671361043042304>',
-    'Glitch':'<a:glitch:1291671357720891402>',
-    'Fallen':':grey_heart:',
-}
+def calculate_level(xp):
+        levels = [
+            (1000, 100, 10),
+            (6000, 500, 20),
+            (16000, 1000, 30),
+            (66000, 5000, 40),
+            (166000, 10000, 50),
+            (1166000, 40000, 75),
+            (1516000, 70000, 80),
+            (3016000, 100000, 95),
+            (float('inf'), 500000, 100)
+        ]
+
+        for threshold, increment, max_level in levels:
+            if xp < threshold:
+                return min(max_level, (xp - (threshold - increment * (max_level - levels[levels.index((threshold, increment, max_level)) - 1][2]))) // increment + levels[levels.index((threshold, increment, max_level)) - 1][2])
+
+        return 100
+
 SUP = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 def num_subscript(x: int):
     x:str = str(x)
@@ -36,14 +43,16 @@ def num_subscript(x: int):
 
 def randomid():
     return ''.join(random.choices(string.ascii_letters+string.digits, k=6))
-
+from game import GameBase
 class Zoo(commands.Cog):
-    def __init__(self, bot: discord.Client, db):
+    gamebase: GameBase
+
+    def __init__(self, bot: discord.Client):
         self.bot = bot
-        self.db = db
+        self.db = bot.db
         
         from game import GameBase
-        self.gamebase = GameBase()
+        self.gamebase:GameBase = GameBase()
         self.bot.extra_log.append(('Zoo', self.gamebase.load_status))
         
         self.all_pet_ids = list(self.gamebase.pets.keys())
@@ -66,7 +75,7 @@ class Zoo(commands.Cog):
     async def zoo(self, ctx: commands.Context):
         user: UserModel = self.get_user(ctx.author.id)
         pet_ranks: dict[str, list] = {}
-        
+
         for id, param in dict(user.zoo).items():
             pet_class = self.gamebase.pets.get(id)
             pet: Pet = pet_class(param)
@@ -86,14 +95,13 @@ class Zoo(commands.Cog):
         content = f"🌿 🌱 🌳 **{ctx.author.display_name}'s zoo!** 🌳 🌿 🌱\n"
         
         zoo_points = 0
-        for k in ['Common', 'Uncommon', 'Rare', 'Epic', 'Mythical', 'Gem', 'Legend', 'Fable', 'Bot', 'Hidden', 'Glitch', 'Fallen']:
-            if not pet_ranks.get(k): continue
+        for rank in pet_ranks:
             row = ''
-            for pet in pet_ranks[k]:
+            for pet in pet_ranks[rank]:
                 zoo_points += pet.points * pet.caught
                 row += f"{pet.icon}{num_subscript(pet.amount)}"
             row = row.strip()
-            content += f"{rarity_to_emoji[k]}  {row}\n"
+            content += f"{self.gamebase.rank_icons[rank]}  {row}\n"
         content += f"**Zoo Points: {zoo_points:,}**"
         
         await ctx.send(content)
@@ -123,7 +131,7 @@ class Zoo(commands.Cog):
         info = ""
         info += f'**Nickname:** {pet.name}\n'
         info += f'**Count:** {param['amount']}\n'
-        info += f'**Rank:** {rarity_to_emoji[pet.rank]} {pet.rank}\n'
+        info += f'**Rank:** {self.gamebase.rank_icons[pet.rank]} {pet.rank}\n'
         info += f'**Điểm:** {pet.points:,}\n'
         info += f'**Bán:** {money_beauty(pet.sell)} | {param.get('selled')} đã bán\n'
         info += f'**Hiến tế:** {pet.sacrifice:,} | {param.get('sacrificed')} đã hiến tế\n'
@@ -137,72 +145,6 @@ class Zoo(commands.Cog):
         embed.add_field(name='',value=f'{blahlbah}',inline=False)
 
         await ctx.send(embed=embed)
-
-    @commands.command(name="hunt", help="Đi săn đến hơi thở cuối cùng", aliases=['h'])
-    @commands.cooldown(1, 2, commands.BucketType.user)
-    async def hunt(self, ctx:commands.Context):
-        user: UserModel = self.get_user(ctx.author.id)
-        pet_id: str = random.choice(self.all_pet_ids)
-
-        
-        if user.zoo.get(pet_id):
-            user.zoo[pet_id]['amount'] += 1
-            user.zoo[pet_id]['caught'] += 1
-        else: user.zoo[pet_id] = {
-            'id': pet_id,
-
-            'level': 0,
-            'xp': 0,
-
-            'amount': 1,
-            'caught': 1,
-            'selled': 0,
-            'sacrificed': 0,
-        }
-        user.zoo.update()
-        self.db.commit()
-
-        pet_class = self.gamebase.pets.get(pet_id)
-        pet: Pet = pet_class(user.zoo[pet_id])
-        
-        if not user.zoo.get(pet_id).get('weapon'): weapon = None
-        else:
-            weapon_class = self.gamebase.weapons.get(user.zoo.get(pet_id)['weapon']['id'])
-            weapon: Weapon = weapon_class(user.zoo.get(pet_id)['weapon'])
-        
-        pet.weapon = weapon
-        pet.amount = user.zoo.get(pet_id)['amount']
-        await ctx.send(f"🌱 **|** {ctx.author.display_name} đã dùng các gem: Có nịt" + '\n' +
-                       f"🌿 **|** Bạn bat duoc trai tim em:  {pet.icon}")
-
-    
-    @commands.command(name="crate", help="Gacha oooo")
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def crate(self, ctx: commands.Context):
-        user:UserModel = self.get_user(ctx.author.id)
-        
-        # Kiểm tra nếu người chơi đủ tiền mở hòm
-        if user.credit < 100:
-            await ctx.reply("Bạn không đủ tiền gacha oooo!")
-            return
-        
-        user.credit -= 100
-
-        weapon_id = random.choice(self.all_weapon_ids)
-        weapon_quality = random.uniform(0, 1)
-        
-        rndid = randomid()
-        while self.get_weapon(rndid): rndid = randomid()
-
-        weapondata = WeaponModel(id=rndid, weapon_id=weapon_id, quality=weapon_quality, user_id=user.id)
-        self.db.add(weapondata)
-        self.db.commit()
-        
-        weapon_cls = self.gamebase.weapons.get(weapon_id)
-        weapon:Weapon = weapon_cls(weapondata)
-        
-        await ctx.reply(f"Chơi cả lò trái tim em... {weapon.icon} {weapon.name}")
-
 
     @commands.group(name="weapon", help='Đồ tự vệ', aliases = ['w'])
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -470,7 +412,7 @@ Lvl {pet.level} `{petpr['xp']}/inf`
             """.strip() + '\n'
                     single_display += (pet_status['weapon'] if pet_status['weapon'] else '⬛') + " - "
                     single_display += "".join(i for i in pet_status['effects'])
-                    display
+                    display.append(single_display)
                 return display
 
             left_display = create_display(left)
@@ -478,21 +420,227 @@ Lvl {pet.level} `{petpr['xp']}/inf`
             
             embed.clear_fields()
             for left, right in itertools.zip_longest(left_display, right_display, fillvalue=''):
-                embed.add_field(name="", value=left or '')
-                embed.add_field(name="", value=right or '')
+                embed.add_field(name="", value=left)
+                embed.add_field(name="", value=right)
                 embed.add_field(name="\u200b", value="\u200b", inline=False)
             
             embed.description = '\n'.join(j for j in i['content'])
 
 
-            embed.set_footer(text=f'Turn {cnt}/{len(game.logs)}')
+            embed.set_footer(text=f'Lượt {cnt}/{len(game.logs)-1}')
 
             await message.edit(embed=embed)
-            cnt += 1
             await asyncio.sleep(2)
+            cnt += 1
+        cnt -= 1
 
-        embed.set_footer(text=f'Ended in {cnt}. {game.winner_content}')
+        embed.set_footer(text=f'Kết thúc vào lượt {cnt}. {game.winner_content}')
         await message.edit(embed=embed)
 
 
-    
+    # Obtain things
+    @commands.command(name="crate", help="Gacha oooo")
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def crate(self, ctx: commands.Context):
+        user:UserModel = self.get_user(ctx.author.id)
+        
+        if user.credit < 100:
+            await ctx.reply("Bạn không đủ tiền gacha oooo!")
+            return
+        
+        user.credit -= 100
+        rewards = []
+
+        for _ in range(random.randint(1, 10)):
+            if random.random() < 0.5:  # 50% chance for gem
+                gem_id = random.choice(list(self.gamebase.gems.keys()))
+                if gem_id not in user.gems:
+                    user.gems[gem_id] = 0
+                user.gems[gem_id] += 1
+                gem_icon = self.gamebase.gems[gem_id][0]
+                
+                rewards.append(f"{gem_icon} {gem_id}")
+
+            else:  # 50% chance for weapon
+                weapon_id = random.choice(self.all_weapon_ids)
+                weapon_quality = random.uniform(0, 1)
+            
+                rndid = randomid()
+                while self.get_weapon(rndid): rndid = randomid()
+
+                weapondata = WeaponModel(id=rndid, weapon_id=weapon_id, quality=weapon_quality, user_id=user.id)
+                self.db.add(weapondata)
+            
+                weapon_cls = self.gamebase.weapons.get(weapon_id)
+                weapon:Weapon = weapon_cls(weapondata)
+
+                rewards.append(f"{weapon.icon} {weapon.name}")
+            
+            await ctx.reply(f"Chơi cả lò trái tim em...\n{'\n'.join(rewards)}")
+        
+        user.gems.update()
+        self.db.commit()
+
+
+    @commands.group(name="hunt", help="Đi săn đến hơi thở cuối cùng", aliases=['h'])
+    @commands.cooldown(10, 100, commands.BucketType.user)
+    async def hunt(self, ctx:commands.Context):
+        if ctx.invoked_subcommand: return
+        user: UserModel = self.get_user(ctx.author.id)
+        embed = discord.Embed(title="Thông tin săn bắn", color=discord.Color.green())
+        embed.description = """
+Đi săn các thứ oooo
+
+`whunt area`: xem các vùng đi săn
+`whunt area <name>`: xem cụ thể vùng đi săn
+
+`whunt setup <vùng> <loại> <gem>` thiết lập đi săn đe
+`<vùng>` xem ở `wteam area`
+`<loại>` có thể là minute/hour/half-day/day dựa vào thời gian đi săn (mặc định là minute nếu bạn không điền)
+`<gem>` Các gem cách nhau một dấu cách hoặc để trống nếu không có
+Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được XP (có thể không có team cũng được)
+"""
+
+        if user.hunt.get('end'):
+            remaining_time = user.hunt['end'] - int(time.time())
+            area = self.gamebase.areas.get(user.hunt['area'])
+            
+            if remaining_time < 0: embed.add_field(name="Trạng thái", value="Chuyến săn đã kết thúc", inline=False)
+            else: embed.add_field(name="Trạng thái", value=f"Đang săn bắn. Kết thúc <t:{user.hunt['end']}:R>", inline=False)
+
+            embed.add_field(name="Thú cưng đang săn", value=", ".join(user.hunt['pets']) if user.hunt['pets'] else 'Không có', inline=False)
+            embed.add_field(name="Đá quý đang sử dụng", value=(' '.join(self.gamebase.gems.get(i) for i in user.hunt['gem'])) if user.hunt['gem'] else "Không có", inline=False)
+            embed.set_image(url=area['image'])
+
+            if remaining_time < 0:
+                rewards = {
+                    'minute': 10,
+                    'hour': 100,
+                    'half-day': 1000,
+                    'day': 10000
+                }
+                
+                reward = rewards.get(user.hunt['type'])
+                amount = random.randint(1, reward)
+                money_reward = random.randint(1, reward)*100
+                amount_bonus = 0
+                xp_bonus = 0
+
+                if user.hunt['gem']:
+                    for g in user.hunt['gem']:
+                        if self.gamebase.increase_gems.get(g):
+                            amount_bonus += self.gamebase.increase_gems.get(g)[1]
+                        if self.gamebase.xp_gems.get(g):
+                            xp_bonus += self.gamebase.xp_gems.get(g)[1]
+                
+                total_xp = 0
+                amount += math.ceil(amount * amount_bonus)
+                money_reward += math.ceil(money_reward * amount_bonus)
+
+                user.credit += money_reward
+
+                pets_reward = set()
+                for i in range(amount):
+                    pets = area['pets']
+                    weights = [self.gamebase.pets.get(p).rarity for p in pets]
+                    pet_id = random.choices(pets, weights)[0]
+                    pet:Pet = self.gamebase.pets.get(pet_id)()
+                    pets_reward.add(pet.icon)
+                    if not user.zoo.get(pet_id): user.zoo[pet_id] = {'id': 'asd', 'level':0, 'xp':0, 'amount': 0, 'caught': 0}
+                    user.zoo[pet_id]['amount'] += 1
+                    user.zoo[pet_id]['caught'] += 1
+                
+                if user.hunt['pets']:
+                    for i in user.hunt['pets']:
+                        xp = random.randint(1, reward)
+                        xp += math.ceil(xp * xp_bonus)
+                        total_xp += xp
+                        user.zoo[i]['xp'] += xp
+                
+                for pet_id in user.zoo or []:
+                    xp = user.zoo[pet_id]['xp']
+                    new_level = calculate_level(xp)
+                    user.zoo[pet_id]['level'] = new_level
+                embed.description = f"Bạn đã hoàn thành chuyến đi săn và nhận được {money_beauty(money_reward)} và {amount} số pet!\n" + ''.join(i for i in pets_reward)
+            
+                user.hunt = {'end': None}
+                
+                user.zoo.update()
+                user.hunt.update()
+
+                self.db.commit()
+        else:
+            embed.add_field(name="Trạng thái", value="Không trong chuyến săn", inline=False)
+        
+        await ctx.send(embed=embed)
+
+    @hunt.command(name="area", help="anh oi em muon di tron")
+    async def area(self, ctx:commands.Context, name:str=None):
+        if name:
+            area = self.gamebase.areas.get(name)
+            if not area:
+                return await ctx.reply(f"Không tồn tại khu vực bạn tìm")
+            """
+            area = {
+            'description': str,
+            'image': str
+            }
+            """
+            embed = discord.Embed(title=name, description=area['description'], color=discord.Color.green())
+            embed.set_image(url=area['image'])
+            return await ctx.send(embed=embed)
+
+
+        embed = discord.Embed(title="Danh sách các vùng đi săn", color=discord.Color.green())
+        for name, area in self.gamebase.areas.items():
+            embed.add_field(name=name, value=area['description'], inline=False)
+        await ctx.send(embed=embed)
+
+
+    @hunt.command(name="setup", help="Thiết lập chuyến đi săn")
+    async def hunt_setup(self, ctx:commands.Context, area:str, type:str=None, *, gem:str=None):
+        user: UserModel = self.get_user(ctx.author.id)
+
+        if user.hunt.get('end'):
+            remaining_time = user.hunt['end'] - int(time.time())
+            if remaining_time > 0:
+                return await ctx.reply(f"Bạn đang trong chuyến săn. Không thể thiết lập mới.")
+            else:
+                return await ctx.reply(f"Hãy dùng `whunt` để nhận thượng chuyến đi săn cũ!")
+        
+        if not self.gamebase.areas.get(area):
+            await ctx.reply(f'Không có bãi săn nào như vậy')
+        if gem:
+            gem=gem.split()
+            gem = list(set(gem))
+            for g in gem:
+                if not self.gamebase.increase_gems.get(gem) or not self.gamebase.xp_gems.get(gem):
+                    return await ctx.reply(f"tự nghĩ ra gem à {g}")
+                if not user.gems.get(g) or user.gems.get(g)['amount']==0:
+                    return await ctx.reply(f"Không có gem cx bài đặt xài à {g}")
+        
+        if gem:
+            for g in gem:
+                user.gems.get(g)['amount']-=1
+        user.gems.update()
+
+        hunt_duration = {
+            'minute': 60,
+            'hour': 3600,
+            'half-day': 43200,
+            'day': 86400
+        }.get(type, 60)
+        user.hunt = {
+            'end': int(time.time()) + hunt_duration,
+            'pets': None if not user.team.get('pets') or len(user.team['pets'])==0 else [i['pet'] for i in user.team['pets']],
+            'type': type,
+            'gem': gem,
+            'area': area
+        }
+        user.hunt.update()
+        self.db.commit()
+        
+        await ctx.send(f"""Đã thiết lập chuyến đi săn ở {area} Chuyến đi sẽ kết thúc <t:{user.hunt['end']}:R>.
+Các đá quý đã sử dụng: {(' '.join(self.gamebase.increase_gems.get(i) or self.gamebase.xp_gems.get(i)  for i in gem)) if gem else 'Không có'}
+""")
+

@@ -2,16 +2,16 @@ import random
 import discord
 from discord.ext import commands
 
-from models.economy import UserModel
+from models import UserModel
 from sqlalchemy import desc
 from datetime import datetime, timedelta
 
 from . import credit_icon, money_beauty
 
 class Eco(commands.Cog):
-    def __init__(self, bot, db):
+    def __init__(self, bot):
         self.bot = bot
-        self.db = db
+        self.db = bot.db
 
     def get_user(self, user_id):
         user = self.db.query(UserModel).filter_by(id=user_id).first()
@@ -24,11 +24,44 @@ class Eco(commands.Cog):
     # Admin
     @commands.command(name="freemoney", help="Give free money (admin only)")
     @commands.is_owner()
-    async def freemoney(self, ctx: commands.Context, user_ping: discord.Member, amount: int):
+    async def freemoney(self, ctx: commands.Context, a: discord.Member|int, b:discord.Member|int):
+        if isinstance(b, int) and isinstance(a, discord.Member): user_ping, amount = a, b
+        elif isinstance(a, int) and isinstance(b, discord.Member): user_ping, amount = b, a
+        else:
+            raise commands.BadArgument('Phải là một người với một số!')
         user = self.get_user(user_ping.id)
         user.credit += amount
         self.db.commit()
         await ctx.send(f"{user_ping.mention} đã nhận được {money_beauty(amount)} free! Hiện {user_ping.mention} đang có {money_beauty(user.credit)}")
+
+    @commands.command(name="give", help="Chuyển tiền cho người khác")
+    @commands.is_owner()
+    async def give(self, ctx: commands.Context, a: discord.Member | int, b: discord.Member | int):
+        if isinstance(b, int) and isinstance(a, discord.Member):
+            recipient, amount = a, b
+        elif isinstance(a, int) and isinstance(b, discord.Member):
+            recipient, amount = b, a
+        else:
+            raise commands.BadArgument('Phải là một người với một số!')
+        
+        if amount <= 0:
+            await ctx.send("Số tiền phải lớn hơn 0!")
+            return
+
+        sender = self.get_user(ctx.author.id)
+        if sender.credit < amount:
+            await ctx.send(f"Bạn không đủ tiền! Bạn chỉ có {money_beauty(sender.credit)}.")
+            return
+
+        receiver = self.get_user(recipient.id)
+        sender.credit -= amount
+        receiver.credit += amount
+        self.db.commit()
+
+        await ctx.send(f"{ctx.author.mention} đã chuyển {money_beauty(amount)} cho {recipient.mention}!\n"
+f"Số dư hiện tại của {ctx.author.mention}: {money_beauty(sender.credit)}\n"
+f"Số dư hiện tại của {recipient.mention}: {money_beauty(receiver.credit)}")
+
 
     # Basic
     @commands.command(name="cash", aliases=["c", "wallet","credit","money"], help=f"Hiển thị số {credit_icon} của bạn.")

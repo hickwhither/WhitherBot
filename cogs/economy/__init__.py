@@ -1,21 +1,18 @@
 import discord
-from models.economy import SessionLocal
 
 credit_icon = "💵"
 def money_beauty(money:int): return f"{credit_icon} {money:,}"
 
 
 async def setup(bot: discord.Client) -> None:
-    db = SessionLocal()
-
     from .eco import Eco
-    await bot.add_cog(Eco(bot, db))
+    await bot.add_cog(Eco(bot))
 
     from .death import Death
-    await bot.add_cog(Death(bot, db))
+    await bot.add_cog(Death(bot))
 
     from .gamble import Gamble
-    await bot.add_cog(Gamble(bot, db))
+    await bot.add_cog(Gamble(bot))
 
     from .zoo import Zoo
-    await bot.add_cog(Zoo(bot, db))
+    await bot.add_cog(Zoo(bot))
