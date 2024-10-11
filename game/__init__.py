@@ -81,6 +81,7 @@ class GameBase:
         
         self.load_status = ''
         self.load_cops(url_to_cops)
+        del self.areas['testing']
 
     
     def load_categories(self, rank, url):

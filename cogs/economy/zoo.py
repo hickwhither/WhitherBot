@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-from game.oop import Pet
-from game.oop import Weapon
+from typing import Union
+from game.oop import Pet, Weapon, calculate_level, next_xp
 from models import *
 import asyncio
 
@@ -15,25 +15,6 @@ import json
 import random
 import re
 import string
-
-def calculate_level(xp):
-        levels = [
-            (1000, 100, 10),
-            (6000, 500, 20),
-            (16000, 1000, 30),
-            (66000, 5000, 40),
-            (166000, 10000, 50),
-            (1166000, 40000, 75),
-            (1516000, 70000, 80),
-            (3016000, 100000, 95),
-            (float('inf'), 500000, 100)
-        ]
-
-        for threshold, increment, max_level in levels:
-            if xp < threshold:
-                return min(max_level, (xp - (threshold - increment * (max_level - levels[levels.index((threshold, increment, max_level)) - 1][2]))) // increment + levels[levels.index((threshold, increment, max_level)) - 1][2])
-
-        return 100
 
 SUP = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
 def num_subscript(x: int):
@@ -95,7 +76,8 @@ class Zoo(commands.Cog):
         content = f"🌿 🌱 🌳 **{ctx.author.display_name}'s zoo!** 🌳 🌿 🌱\n"
         
         zoo_points = 0
-        for rank in pet_ranks:
+        for rank in self.gamebase.rank_icons.keys():
+            if not pet_ranks.get(rank): continue
             row = ''
             for pet in pet_ranks[rank]:
                 zoo_points += pet.points * pet.caught
@@ -243,8 +225,6 @@ Mở khóa vũ khí: `w weapon unlock <weaponID>`
         cnt = 1
         for pet_param in team.get('pets') or []:
             petpr = user.zoo.get(pet_param['pet'])
-            print(user.zoo)
-            print(petpr)
             pet_class = self.gamebase.pets.get(petpr['id'])
             pet: Pet = pet_class(petpr)
 
@@ -259,7 +239,7 @@ Mở khóa vũ khí: `w weapon unlock <weaponID>`
 
             embed.add_field(name='', value=f"""
 **[{cnt}] {pet.icon} {pet.name}**
-Lvl {pet.level} `{petpr['xp']}/inf`
+Lvl {pet.level} `{petpr['xp']}/{next_xp(pet.level)}`
 <:Health_Points:1291709800182190183> `{pet.health}` <:Intelligent_point:1291709803248488469> `{pet.intelligent}` <:Weapon_Points:1291709815164502047> `{pet.weapon_point}`
 <:Physical_Attack:1291709810374610984> `{pet.physical_attack}` <:Physical_Resistance:1291709812496797696> `{pet.resistance_physical}`
 <:Magical_Attack:1291709805710278697> `{pet.magical_attack}` <:Magical_Resistance:1291709808512339998> `{pet.resistance_magical}`
@@ -512,7 +492,7 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
             else: embed.add_field(name="Trạng thái", value=f"Đang săn bắn. Kết thúc <t:{user.hunt['end']}:R>", inline=False)
 
             embed.add_field(name="Thú cưng đang săn", value=", ".join(user.hunt['pets']) if user.hunt['pets'] else 'Không có', inline=False)
-            embed.add_field(name="Đá quý đang sử dụng", value=(' '.join(self.gamebase.gems.get(i) for i in user.hunt['gem'])) if user.hunt['gem'] else "Không có", inline=False)
+            embed.add_field(name="Đá quý đang sử dụng", value=(' '.join(self.gamebase.gems.get(i)[0] for i in user.hunt['gem'])) if user.hunt['gem'] else "Không có", inline=False)
             embed.set_image(url=area['image'])
 
             if remaining_time < 0:
@@ -549,7 +529,7 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
                     pet_id = random.choices(pets, weights)[0]
                     pet:Pet = self.gamebase.pets.get(pet_id)()
                     pets_reward.add(pet.icon)
-                    if not user.zoo.get(pet_id): user.zoo[pet_id] = {'id': pet_id, 'level':0, 'xp':0, 'amount': 0, 'caught': 0}
+                    if not user.zoo.get(pet_id): user.zoo[pet_id] = {'id': pet_id, 'xp':0, 'amount': 0, 'caught': 0}
                     user.zoo[pet_id]['amount'] += 1
                     user.zoo[pet_id]['caught'] += 1
                 
@@ -560,17 +540,11 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
                         total_xp += xp
                         user.zoo[i]['xp'] += xp
                 
-                for pet_id in user.zoo or []:
-                    xp = user.zoo[pet_id]['xp']
-                    new_level = calculate_level(xp)
-                    user.zoo[pet_id]['level'] = new_level
                 embed.description = f"Bạn đã hoàn thành chuyến đi săn và nhận được {money_beauty(money_reward)} và {amount} số pet!\n" + ''.join(i for i in pets_reward)
             
                 user.hunt = {'end': None}
                 
-                user.zoo.update()
-                user.hunt.update()
-
+                user.full_update()
                 self.db.commit()
         else:
             embed.add_field(name="Trạng thái", value="Không trong chuyến săn", inline=False)
@@ -601,7 +575,7 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
 
 
     @hunt.command(name="setup", help="Thiết lập chuyến đi săn")
-    async def hunt_setup(self, ctx:commands.Context, area:str, type:str=None, *, gem:str=None):
+    async def hunt_setup(self, ctx:commands.Context, area:str, type:str='minute', *, gem:str=None):
         user: UserModel = self.get_user(ctx.author.id)
 
         if user.hunt.get('end'):
@@ -611,20 +585,22 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
             else:
                 return await ctx.reply(f"Hãy dùng `whunt` để nhận thượng chuyến đi săn cũ!")
         
+        if type not in ['minute', 'hour', 'half-day', 'day']:
+            return await ctx.reply(f'Thời gian phải là minute/hour/half-day/day')
         if not self.gamebase.areas.get(area):
-            await ctx.reply(f'Không có bãi săn nào như vậy')
+            return await ctx.reply(f'Không có bãi săn nào như vậy')
         if gem:
             gem=gem.split()
             gem = list(set(gem))
             for g in gem:
-                if not self.gamebase.increase_gems.get(gem) or not self.gamebase.xp_gems.get(gem):
+                if not self.gamebase.gems.get(g):
                     return await ctx.reply(f"tự nghĩ ra gem à {g}")
-                if not user.gems.get(g) or user.gems.get(g)['amount']==0:
+                if not user.gems.get(g) or user.gems.get(g)==0:
                     return await ctx.reply(f"Không có gem cx bài đặt xài à {g}")
         
         if gem:
             for g in gem:
-                user.gems.get(g)['amount']-=1
+                user.gems[g]-=1
         user.gems.update()
 
         hunt_duration = {
@@ -644,6 +620,28 @@ Team setup sẽ sử dụng `wteam` và các pet đi săn sẽ nhận được X
         self.db.commit()
         
         await ctx.reply(f"""Đã thiết lập chuyến đi săn ở {area} Chuyến đi sẽ kết thúc <t:{user.hunt['end']}:R>.
-Các đá quý đã sử dụng: {(' '.join(self.gamebase.increase_gems.get(i) or self.gamebase.xp_gems.get(i)  for i in gem)) if gem else 'Không có'}
+Các đá quý đã sử dụng: {(' '.join(self.gamebase.gems.get(i)[0] for i in gem)) if gem else 'Không có'}
 """, mention_author=False)
+
+    #Admin
+    @commands.command(name="getanimal", help="Lấy pet cho admin")
+    @commands.is_owner()
+    async def get_animal(self, ctx: commands.Context, args1: Union[discord.User, str], args2: Union[discord.User, str] = None):
+        if isinstance(args1, discord.User):
+            member = args1
+            pet_id = args2
+        else:
+            pet_id = args1
+            member = args2 or ctx.author
+        user: UserModel = self.get_user(member.id if member else ctx.author.id)
+        
+        pet_id = self.gamebase.pet_aliases.get(pet_id)
+        if not pet_id:
+            return await ctx.reply("Không có pet nào như vậy!")
+
+        if not user.zoo.get(pet_id): user.zoo[pet_id] = {'id': pet_id, 'xp':0, 'amount': 0, 'caught': 0}
+        user.zoo.update()
+        self.db.commit()
+        
+        await ctx.reply(f"Đã thêm pet '{pet_id}' vào {member.display_name}'s zoo!", mention_author=False)
 

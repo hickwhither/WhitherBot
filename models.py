@@ -1,3 +1,7 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.oop import calculate_level
 from datetime import datetime
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -41,6 +45,12 @@ class UserModel(Base):
     # {'id': amount}
 
     hunt:Mapped[dict] = mapped_column(MutableDict.as_mutable(PickleType), default={'end': None})
+    
+    def full_update(self):
+        self.zoo.update()
+        self.team.update()
+        self.gems.update()
+        self.hunt.update()
 
             
 

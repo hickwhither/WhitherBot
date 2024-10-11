@@ -6,6 +6,40 @@ if TYPE_CHECKING:
 from typing import Callable
 import random
 
+
+levels = [
+    (100, 10),
+    (500, 10), 
+    (1000, 10), 
+    (5000, 10), 
+    (10000, 10), 
+    (40000, 25), 
+    (70000, 5), 
+    (100000, 15), 
+    (500000, 5) 
+]
+
+def next_xp(level):
+    sum = 0
+    for increment, level_count in levels:
+        
+        if level < level_count:
+            return sum+level*increment
+        sum += increment*level_count
+    return float('inf')
+
+def calculate_level(xp):
+    sum = 0
+    for increment, level_count in levels:
+        threshold = increment*level_count
+        if xp < threshold:
+            return sum + xp // increment + 1
+        xp -= threshold
+        sum += level_count
+
+    return 100
+
+
 class Pet:
     """
     ## Input Pramaters
@@ -80,7 +114,8 @@ class Pet:
         
         self.id = param.get('id')
         self.name = param.get('name') or self.__class__.__name__
-        self.level = param.get('level') or 0
+        self.xp = param.get('xp') or 0
+        self.level = calculate_level(self.xp)
         self.weapon = None
     
 
