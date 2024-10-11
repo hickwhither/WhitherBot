@@ -37,8 +37,9 @@ class cuoilai(Pet):
         return name
 
     def turn(self):
-        self.game.left.name = self.change_name(self.game.left.name)
-        self.game.right.name = self.change_name(self.game.right.name)
+        if not self.game.left.name.endswith(self.icon): self.game.left.name += ' ' + self.icon
+        if not self.game.right.name.endswith(self.icon): self.game.right.name += ' ' + self.icon
         pet:Pet = random.choice(self.game.left.pets + self.game.right.pets)
-        pet.name = self.change_name(pet.name)
+        if not pet.name.endswith(self.icon):
+            pet.name += ' ' + self.icon
     
