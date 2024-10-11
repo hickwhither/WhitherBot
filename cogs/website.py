@@ -18,9 +18,12 @@ class website(commands.Cog):
         def status():
             return f'Bot is online. Latency: {round(self.bot.latency * 1000)}ms'
 
+    def run_website(self):
+        self.app.run(host='0.0.0.0', port=8080)
+
     @commands.Cog.listener()
     async def on_ready(self):
-        self.app.run(host='0.0.0.0', port=8080)
+        threading.Thread(target=self.run_website, daemon=True).start()
         print("Website cog is ready!")
 
     def run_website(self):
