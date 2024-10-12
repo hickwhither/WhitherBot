@@ -2,16 +2,16 @@ import random
 import discord
 from discord.ext import commands
 
-from models import UserModel
+from models.economy import UserModel
 from sqlalchemy import desc
 from datetime import datetime, timedelta
 
 from . import credit_icon, money_beauty
 
 class Eco(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, db):
         self.bot = bot
-        self.db = bot.db
+        self.db = db
 
     def get_user(self, user_id):
         user = self.db.query(UserModel).filter_by(id=user_id).first()

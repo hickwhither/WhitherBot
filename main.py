@@ -26,10 +26,13 @@ class MyBot(commands.Bot):
             message.content = self.default_prefix + message.content[len(self.default_prefix):].strip()
             await self.process_commands(message)
     
-    async def setup_hook(self):
-        from models import SessionLocal
-        self.db = SessionLocal()
+    async def setup_db(self):
+        from models import economy, noitu
+        self.economy_db = economy.SessionLocal()
+        self.noitu_db = noitu.SessionLocal()
 
+    async def setup_hook(self):
+        self.setup_db()
         self.extra_log = []
         for file in os.listdir('cogs'):
             if not file.startswith('_') and (os.path.exists(os.path.join('cogs', file)) or file.endswith('.py')):

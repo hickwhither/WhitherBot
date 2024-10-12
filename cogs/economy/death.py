@@ -2,7 +2,7 @@ import discord
 from discord import Embed, Colour
 from discord.ext import commands
 
-from models import UserModel
+from models.economy import UserModel
 
 import asyncio
 import random
@@ -246,9 +246,9 @@ class RouletteGame:
 
 
 class Death(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, db):
         self.bot = bot
-        self.db = bot.db
+        self.db = db
         self.load_status = 'Ok'
 
     def get_user(self, user_id):

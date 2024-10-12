@@ -37,14 +37,15 @@ class ImageCog(commands.Cog):
     async def deptrai(self, ctx, *, msg: str):
         """Tạo giấy chứng nhận cho bạn =)"""
         await ctx.typing()
+        str.split()
         
-        img = Image.open('./images/deptraibg.png')
+        img = Image.open('./assets/images/deptraibg.png')
         # msg = no_accent_vietnamese(msg)
         para = list(textwrap.wrap(msg, width = 35)[:6])
 
         MAX_W, MAX_H = img.size
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype('./fonts/HappySwirly-KVB7l.ttf', 60, encoding='utf-8')
+        font = ImageFont.truetype('./assets/fonts/HappySwirly-KVB7l.ttf', 60, encoding='utf-8')
 
         current_h, pad = 420, 50
         for line in para:

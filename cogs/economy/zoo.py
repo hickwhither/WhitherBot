@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from typing import Union
 from game.oop import Pet, Weapon, calculate_level, next_xp
-from models import *
+from models.economy import *
 import asyncio
 
 from . import credit_icon, money_beauty
@@ -28,9 +28,9 @@ from game import GameBase
 class Zoo(commands.Cog):
     gamebase: GameBase
 
-    def __init__(self, bot: discord.Client):
+    def __init__(self, bot: discord.Client, db):
         self.bot = bot
-        self.db = bot.db
+        self.db = db
         
         from game import GameBase
         self.gamebase:GameBase = GameBase()

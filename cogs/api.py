@@ -71,11 +71,26 @@ class api(commands.Cog):
     async def ditmenavi(self, ctx:commands.Context):
         ct = random.choice(self.ditmenavi_api)
         embed = discord.Embed(colour=discord.Color.random(),
-                              title=f'DMNAVI | {ct['category']}' if ct['category']!='' else 'DMNAVI',
                               description=ct['content'],
                               timestamp=ct['timestamp'])
+        embed.set_author(name=f'DMNAVI | {ct['category']}' if ct['category']!='' else 'DMNAVI', url='https://ditmenavi.com')
         embed.set_footer(text=ct['name'])
         await ctx.send(embed=embed)
-        
-
-
+    
+    @commands.command(name='number')
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def number(self, ctx: commands.Context, number: int = None):
+        """Get a random fact about a number from numbersapi.com"""
+        url = f'http://numbersapi.com/{number if number else "random"}/trivia'
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    fact = await response.text()
+                    embed = discord.Embed(
+                        title=f"Number Fact: {number if number else 'Random'}",
+                        description=fact,
+                        color=discord.Color.blue()
+                    )
+                    await ctx.send(embed=embed)
+                else:
+                    await ctx.send("Cá mập cắn cáp oooooooo")

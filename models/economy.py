@@ -1,7 +1,3 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from game.oop import calculate_level
 from datetime import datetime
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -35,16 +31,16 @@ class UserModel(Base):
     credit:Mapped[int] = mapped_column(BigInteger, default=0)
     weapon_shards:Mapped[int] = mapped_column(BigInteger, default=0)
 
-    zoo:Mapped[dict] = mapped_column(MutableDict.as_mutable(PickleType), default={})
+    zoo:Mapped[dict] = mapped_column(MutableDict.as_mutable(JSON), default={})
     # animal: {'asd': {'id': 'asd', 'name': str, 'level': int, 'xp':int, 'amount': 0, weapon:'wp_id'}}
-    team:Mapped[dict] = mapped_column(MutableDict.as_mutable(PickleType), default={'streak':0, 'max_streak':0})
+    team:Mapped[dict] = mapped_column(MutableDict.as_mutable(JSON), default={'streak':0, 'max_streak':0})
     # {'name': str, 'pets': [{'pet': pet_id, 'weapon': weapon_id, 'xp': 0}]}
     weapon:Mapped[list['WeaponModel']] = relationship(back_populates="user")
     # item: [{'id': '71UWALS', 'weapon_id': ...}]
-    gems:Mapped[dict] = mapped_column(MutableDict.as_mutable(PickleType), default={})
+    gems:Mapped[dict] = mapped_column(MutableDict.as_mutable(JSON), default={})
     # {'id': amount}
 
-    hunt:Mapped[dict] = mapped_column(MutableDict.as_mutable(PickleType), default={'end': None})
+    hunt:Mapped[dict] = mapped_column(MutableDict.as_mutable(JSON), default={'end': None})
     
     def full_update(self):
         self.zoo.update()
