@@ -1,8 +1,13 @@
 import discord
 from discord import Embed
 from discord.ext import commands
+
+import requests
 import aiohttp
+from bs4 import *
 import json
+import random
+from datetime import *
 
 async def setup(bot) -> None:
     await bot.add_cog(api(bot))
@@ -10,8 +15,7 @@ async def setup(bot) -> None:
 class api(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        
-        self.bot.http.token
+        self.ditmenavi_load()
 
     #ham api dep trai
     @staticmethod
@@ -41,57 +45,37 @@ class api(commands.Cog):
             )
         )
 
+    def ditmenavi_load(self):
+        res = requests.get('https://queue.ditmenavi.com')
+        content = res.content.decode()
+        soup = BeautifulSoup(content, 'html.parser')
+        rows = soup.find_all('tr')
+        rows = list(rows[1:])
+        self.ditmenavi_api = []
+        for row in rows:
+            data = row.find_all('td')
+            raw = {
+                'timestamp' : data[1].text,
+                'name' : data[2].text,
+                'content' : data[3].text,
+                'category' : data[4].text,
+            }
+            # 2024-10-11 14:18:08
+            date_format = '%Y-%m-%d %H:%M:%S'
+            raw['timestamp'] = datetime.strptime(raw['timestamp'], date_format)
 
-    # @commands.command(name = '8ball')
-    # async def _8ball(self, ctx: commands.Context, *, ques: str):
-    #     await ctx.typing()
-    #     json = await self._request(f'https://8ball.delegator.com/magic/json/{ques}')
-    #     await ctx.reply(embed = Embed(
-    #         colour = discord.Colour.random(),
-    #         title = '🎱 8ball',
-    #         description = json['magic']['answer'] + ' ' + ctx.author.mention
-    #     ),mention_author = False)
-    
-    # @commands.command()
-    # async def cov(self, ctx: commands.Context,*, country = None):
-    #     await ctx.typing()
-    #     if country is None:
-    #         country = 'World'
-    #     try:
-    #         json = await self._request(f'https://coronavirus-19-api.herokuapp.com/countries/{country}')
-    #     except Exception as e:
-    #         embed = Embed(
-    #             title = 'Có một lỗi nào đó 😔',
-    #             description = 'Có lẽ quốc gia bạn nhập không có thống kê hoặc đập troai',
-    #             color = 0x43AAEB
-    #         ).set_footer(
-    #             text = e
-    #         )
-    #     else:
-    #         embed = Embed(
-    #             title = f'Cập nhật tình hình Covid-19 trên thế giới 🌏',
-    #             url = f'https://coronavirus-19-api.herokuapp.com/countries/{country}',
-    #             color = 0x43AAEB
-    #         ).add_field(
-    #             name = '☢ Tổng ca mắc',
-    #             value = f"{json['cases']:,}",
-    #         ).add_field(
-    #             name = '☢ Số ca mắc hôm nay ⛅',
-    #             value = f"{json['todayCases']:,}"
-    #         ).add_field(
-    #             name = '💀 Tử vong',
-    #             value = f"{json['deaths']:,}",
-    #             inline = False
-    #         ).add_field(
-    #             name = '💀 Tử vong hôm nay ⛅',
-    #             value = f"{json['todayDeaths']:,}"
-    #         ).add_field(
-    #             name = '🧪 Đã khỏi',
-    #             value = f"{json['recovered']:,}",
-    #             inline = False
-    #         )
-    #         if country != 'World':
-    #             embed.title = f'Cập nhật tình hình Covid-19 tại {json["country"]} ❤'
-    #     await ctx.send(embed = embed)
+            self.ditmenavi_api.append(raw)
+
+    @commands.command(name='ditmenavi')
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def ditmenavi(self, ctx:commands.Context):
+        ct = random.choice(self.ditmenavi_api)
+        embed = discord.Embed(colour=discord.Color.random(),
+                              title=f'DMNAVI | {ct['category']}' if ct['category']!='' else 'DMNAVI',
+                              description=ct['content'],
+                              timestamp=ct['timestamp'])
+        embed.set_footer(text=ct['name'])
+        await ctx.send(embed=embed)
+        
 
 
