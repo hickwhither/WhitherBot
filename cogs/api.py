@@ -2,6 +2,7 @@ import discord
 from discord import Embed
 from discord.ext import commands
 
+import urllib
 import requests
 import aiohttp
 from bs4 import *
@@ -78,7 +79,7 @@ class api(commands.Cog):
         await ctx.send(embed=embed)
     
     @commands.command(name='number')
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def number(self, ctx: commands.Context, number: int = None):
         """Get a random fact about a number from numbersapi.com"""
         url = f'http://numbersapi.com/{number if number else "random"}/trivia'
@@ -94,3 +95,11 @@ class api(commands.Cog):
                     await ctx.send(embed=embed)
                 else:
                     await ctx.send("Cá mập cắn cáp oooooooo")
+
+    @commands.command(name='qr')
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def qr(self, ctx: commands.Context, *, txt:str = None):
+        if txt == None: return
+        embed = discord.Embed(color=discord.Color.blue())
+        embed.set_image(url=f'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={urllib.parse.quote(txt)}')
+        await ctx.reply(embed=embed, mention_author=False)

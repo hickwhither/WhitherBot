@@ -26,10 +26,9 @@ class MyBot(commands.Bot):
             message.content = self.default_prefix + message.content[len(self.default_prefix):].strip()
             await self.process_commands(message)
     
-    async def setup_db(self):
-        from models import economy, noitu
+    def setup_db(self):
+        from models import economy
         self.economy_db = economy.SessionLocal()
-        self.noitu_db = noitu.SessionLocal()
 
     async def setup_hook(self):
         self.setup_db()

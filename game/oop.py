@@ -154,17 +154,17 @@ class Pet:
         self.events[name].append(func, *args, **kwargs)
     
     def on_turn(self):
-        skip_active = False, False
+        skip_active = False
 
         self.effects = filter(lambda x: x.is_alive, self.effects)
 
         for effect in self.effects:
             if effect.is_alive == False: continue
-            sa = effect.on_turn() or False, False
+            sa = effect.on_turn() or False
             skip_active = sa or skip_active
         
         for func in self.events.get('on_turn') or []:
-            sa = func() or False, False
+            sa = func() or False
             skip_active = sa or skip_active
     
         if not skip_active: self.active()
