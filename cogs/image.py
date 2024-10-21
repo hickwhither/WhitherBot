@@ -37,7 +37,7 @@ class ImageCog(commands.Cog):
     async def deptrai(self, ctx, *, msg: str):
         """Tạo giấy chứng nhận cho bạn =)"""
         await ctx.typing()
-        str.split()
+        msg.split()
         
         img = Image.open('./assets/images/deptraibg.png')
         # msg = no_accent_vietnamese(msg)
