@@ -47,7 +47,7 @@ class api(commands.Cog):
         )
 
     def ditmenavi_load(self):
-        res = requests.get('https://queue.ditmenavi.com')
+        res = requests.get('https://queue.ditmenavi.com', timeout=2)
         content = res.content.decode()
         soup = BeautifulSoup(content, 'html.parser')
         rows = soup.find_all('tr')
@@ -74,7 +74,7 @@ class api(commands.Cog):
         embed = discord.Embed(colour=discord.Color.random(),
                               description=ct['content'],
                               timestamp=ct['timestamp'])
-        embed.set_author(name=f'DMNAVI | {ct['category']}' if ct['category']!='' else 'DMNAVI', url='https://ditmenavi.com')
+        embed.set_author(name=f"DMNAVI | {ct['category']}' if ct['category']!='' else 'DMNAVI', url='https://ditmenavi.com")
         embed.set_footer(text=ct['name'])
         await ctx.send(embed=embed)
     

@@ -111,12 +111,12 @@ class Zoo(commands.Cog):
         embed = discord.Embed(title=f"{pet.icon} {pet.id}", description=f"*{pet.description}*")
 
         info = ""
-        info += f'**Nickname:** {pet.name}\n'
-        info += f'**Count:** {param['amount']}\n'
-        info += f'**Rank:** {self.gamebase.rank_icons[pet.rank]} {pet.rank}\n'
-        info += f'**Điểm:** {pet.points:,}\n'
-        info += f'**Bán:** {money_beauty(pet.sell)} | {param.get('selled')} đã bán\n'
-        info += f'**Hiến tế:** {pet.sacrifice:,} | {param.get('sacrificed')} đã hiến tế\n'
+        info += f"**Nickname:** {pet.name}\n"
+        info += f"**Count:** {param['amount']}\n"
+        info += f"**Rank:** {self.gamebase.rank_icons[pet.rank]} {pet.rank}\n"
+        info += f"**Điểm:** {pet.points:,}\n"
+        info += f"**Bán:** {money_beauty(pet.sell)} | {param.get('selled')} đã bán\n"
+        info += f"**Hiến tế:** {pet.sacrifice:,} | {param.get('sacrificed')} đã hiến tế\n"
         embed.add_field(name='',value=info,inline=False)
 
         blahlbah = f"""
@@ -220,7 +220,7 @@ Mở khóa vũ khí: `w weapon unlock <weaponID>`
         """)
 
         embed.set_author(name=f"{team.get('name') or ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
-        embed.set_footer(text=f'Current Streak: {team.get('streak')} | Highest streak: {team.get('max_streak')}')
+        embed.set_footer(text=f"Current Streak: {team.get('streak')} | Highest streak: {team.get('max_streak')}")
 
         cnt = 1
         for pet_param in team.get('pets') or []:
@@ -383,7 +383,7 @@ Lvl {pet.level} `{petpr['xp']}/{next_xp(pet.level)}`
 
             def create_display(team_status):
                 pet_status_list = team_status['pets']
-                display = [f'**{team_status['name']}**']
+                display = [f"**{team_status['name']}**"]
                 for pet_status in pet_status_list:
                     single_display = ''
                     single_display += f"L. {pet_status['level']} {pet_status['icon']} {pet_status['name']}\n"
@@ -458,7 +458,7 @@ Lvl {pet.level} `{petpr['xp']}/{next_xp(pet.level)}`
 
                 rewards.append(f"{weapon.icon} {weapon.name}")
             
-        await ctx.reply(f"Chơi cả lò trái tim em...\n{'\n'.join(rewards)}", mention_author=False)
+        await ctx.reply("Chơi cả lò trái tim em...{}".format("\n" + '\n'.join(rewards)), mention_author=False)
         
         user.gems.update()
         self.db.commit()
