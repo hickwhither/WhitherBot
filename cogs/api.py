@@ -2,6 +2,7 @@ import discord
 from discord import Embed
 from discord.ext import commands
 
+import aiohttp
 import urllib
 import requests
 from bs4 import *
@@ -20,8 +21,9 @@ class api(commands.Cog):
     #ham api dep trai
     @staticmethod
     async def _request(url : str, **kwrags):
-        response = requests.get(url, **kwrags)
-        return response.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, **kwrags) as response:
+                return await response.json()
 
     @commands.is_nsfw()
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -81,18 +83,18 @@ class api(commands.Cog):
     async def number(self, ctx: commands.Context, number: int = None):
         """Get a random fact about a number from numbersapi.com"""
         url = f'http://numbersapi.com/{number if number else "random"}/trivia'
-        resp = requests.get(url)
-        if resp.status_code == 200:
-            fact = resp.text
-            embed = discord.Embed(
-                title=f"Number Fact: {number if number else 'Random'}",
-                description=fact,
-                color=discord.Color.blue()
-            )
-            await ctx.send(embed=embed)
-        else:
-            await ctx.send("Cá mập cắn cáp oooooooo")
-
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    fact = await resp.text()
+                    embed = discord.Embed(
+                        title=f"Number Fact: {number if number else 'Random'}",
+                        description=fact,
+                        color=discord.Color.blue()
+                    )
+                    await ctx.send(embed=embed)
+                else:
+                    await ctx.send("Cá mập cắn cáp oooooooo")
     @commands.command(name='qr')
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def qr(self, ctx: commands.Context, *, txt:str = None):
