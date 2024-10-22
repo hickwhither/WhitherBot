@@ -74,7 +74,7 @@ class api(commands.Cog):
         embed = discord.Embed(colour=discord.Color.random(),
                               description=ct['content'],
                               timestamp=ct['timestamp'])
-        embed.set_author(name=f"DMNAVI | {ct['category']}' if ct['category']!='' else 'DMNAVI', url='https://ditmenavi.com")
+        embed.set_author(name=f"DMNAVI | {ct['category'] if ct['category']!='' else 'DMNAVI'}, url='https://ditmenavi.com")
         embed.set_footer(text=ct['name'])
         await ctx.send(embed=embed)
     

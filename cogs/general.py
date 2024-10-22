@@ -1,13 +1,20 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app import WhitherBot
+
 import time, datetime
 import discord
 from discord import Message
 from discord.ext import commands
+from flask import *
 
 async def setup(bot) -> None:
     await bot.add_cog(General(bot))
 
 class General(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    bot: WhitherBot
+    def __init__(self, bot: WhitherBot) -> None:
         self.bot = bot
     
     @commands.command()
@@ -22,7 +29,7 @@ class General(commands.Cog):
     async def uptime(self, ctx):
         """How long I've been up"""
         current_time = time.time()
-        uptime_seconds = int(current_time - self.start_time)
+        uptime_seconds = int(current_time - self.bot.start_time)
         uptime_str = str(datetime.utcfromtimestamp(uptime_seconds).strftime('%H:%M:%S'))
         await ctx.send(f"Bot đã online trong: {uptime_str}")
 

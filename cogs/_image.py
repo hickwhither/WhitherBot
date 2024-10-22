@@ -1,16 +1,13 @@
 import discord
 from discord.ext import commands
-from discord import app_commands
-from discord.ext.commands import hybrid_command,Context
-from typing import Optional
-
-import requests
 
 from PIL import ImageDraw, ImageFont, Image
-from bs4 import BeautifulSoup
-import io, re, unicodedata, textwrap
+import io, re, textwrap
+
+from options import HAVE_PILLOW
 
 async def setup(bot) -> None:
+    if not HAVE_PILLOW: return
     await bot.add_cog(ImageCog(bot))
 
 PATTERNS = {
@@ -40,7 +37,7 @@ class ImageCog(commands.Cog):
         msg.split()
         
         img = Image.open('./assets/images/deptraibg.png')
-        # msg = no_accent_vietnamese(msg)
+        msg = no_accent_vietnamese(msg)
         para = list(textwrap.wrap(msg, width = 35)[:6])
 
         MAX_W, MAX_H = img.size

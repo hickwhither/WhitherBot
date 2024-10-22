@@ -1,7 +1,9 @@
-discord
-python-dotenv
 flask
+flask-login
+markdown
+
+discord
+
 Pillow
 beautifulsoup4
 requests
-sqlalchemy

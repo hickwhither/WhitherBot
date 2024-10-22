@@ -2,7 +2,7 @@ import random
 import discord
 from discord.ext import commands
 
-from models.economy import UserModel
+from models import UserModel
 import asyncio
 
 from . import credit_icon, money_beauty

@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from typing import Union
 from game.oop import Pet, Weapon, calculate_level, next_xp
-from models.economy import *
+from models import *
 import asyncio
 
 from . import credit_icon, money_beauty

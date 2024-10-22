@@ -17,6 +17,6 @@ __pycache__/*
 Dockerfile
 .dockerignore
 
-.env
+.secret.json
 db
 db/*

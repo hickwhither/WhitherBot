@@ -2,7 +2,7 @@ import discord
 from discord import Embed, Colour
 from discord.ext import commands
 
-from models.economy import UserModel
+from models import UserModel
 
 import asyncio
 import random

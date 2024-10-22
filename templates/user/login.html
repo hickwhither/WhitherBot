@@ -1,0 +1,23 @@
+{%extends "base.html"%}
+
+{%block title%}Login{%endblock%}
+
+{%block body%}
+
+<div class="card" style="padding:16px">
+        <h1 class="text-center">Login</h1>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input name="username" class="form-control" id="username">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input name="password" class="form-control" id="password" type="password">
+            </div>
+            <input type="hidden" name="next" value="{{next}}"/>
+            <input type="submit" class="btn btn-primary" value="🚶‍♀️ Login" />
+        </form>
+</div>
+
+{%endblock%}
