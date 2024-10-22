@@ -18,7 +18,7 @@ if __name__ == '__main__':
             "WEBSITE": {
                 "URL": "localhost",
                 "HOST": "0.0.0.0",
-                "PORT": 80
+                "PORT": 8080
             },
 
             "HAVE_PILLOW": True,
