@@ -1,6 +1,5 @@
-import os, time
 import os, importlib
-
+import time, random, string
 import discord
 from discord import Message
 from discord.ext.commands import Bot
@@ -16,6 +15,9 @@ class WhitherWebsite(Flask):
         self.bot = bot
         self.secret = secret
         self.config['SECRET_KEY'] = self.secret['SECRET_KEY']
+        
+        self.password = ''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(15))
+        print(f"Generated password: {self.password}")
 
         for brp in os.listdir(os.path.dirname('./blueprints/')):
             if brp[0]=='_' or brp[-3:] != '.py': continue

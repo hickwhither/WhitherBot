@@ -1,12 +1,14 @@
 from flask import *
 from flask_login import *
 import markdown, markupsafe
-import json
+import os, json, dotenv
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
 
-@bp.route('/secret', methods=['GET', 'POST'])
-def secret_edit():
+@bp.route('/secret/<password>', methods=['GET', 'POST'])
+def secret_edit(password):
+    if password != current_app.password: return redirect(url_for('views.home'))
+
     if request.method == 'POST':
         if request.form.get('content'):
             data = json.loads(request.form.get('content'))
