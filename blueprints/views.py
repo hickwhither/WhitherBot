@@ -8,8 +8,6 @@ bp = Blueprint('views', __name__, url_prefix='/')
 def _404(e):
     return render_template("404.html", err='hello em')
 
-bp = Blueprint('views', __name__, url_prefix='/')
-
 @bp.route('/')
 def home():
     latency = round(current_app.bot.latency * 1000)

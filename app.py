@@ -47,7 +47,7 @@ class WhitherBot(Bot):
         super().__init__(
             command_prefix = self.default_prefix,
             intents = discord.Intents.all(),
-            application_id = self.secret['BOT']['APPLICATION_ID'],
+            application_id = self.secret['BOT']['ID'],
             owner_ids = self.secret['OWNERS_ID']
         )
     
@@ -80,8 +80,4 @@ class WhitherBot(Bot):
     async def on_ready(self):
         print(f'=== Logged as {self.user} ({self.user.id}) ===')
         self.start_time = time.time()
-        import threading
-        threading.Thread(target=self.website.run,
-                        kwargs=dict(host=self.secret['WEBSITE']['HOST'], port=self.secret['WEBSITE']['PORT']),
-                        daemon=True).start()
     
