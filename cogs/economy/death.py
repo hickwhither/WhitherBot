@@ -268,7 +268,7 @@ class Death(commands.Cog):
             return await ctx.reply(f"Deo co tien thi cuc")
         if amount == "all":
             amount = user.credit
-        if amount < 690:
+        if amount < 100:
             return await ctx.reply(f"Số tiền phải ít nhất là {money_beauty(100)}")
         amount = min(amount, 6942000)
         
