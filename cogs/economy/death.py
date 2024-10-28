@@ -154,7 +154,7 @@ class RouletteGame:
     bullet_position:int = 0
     shots_fired: int = 0
     dead: bool = False
-    is_playing: bool = False
+    is_playing: bool = True
 
     def __init__(self, ctx:commands.Context, bet: int, user_data: UserModel, db, bot: discord.Client):
         self.ctx = ctx
@@ -162,7 +162,7 @@ class RouletteGame:
         self.bot = bot
 
         self.bet = bet
-        self.prize = [round(self.bet*0.25)*i for i in range(1, 6)]
+        self.prize = [round(self.bet*0.169)*i for i in range(1, 6)]
         self.total_prize = bet
         self.bullet_position = random.randint(0, 5)
 
@@ -205,10 +205,11 @@ class RouletteGame:
         
         magazine = []
         for i in range(6):
-            if i == self.shots_fired:
-                magazine.append(f'{"🔴" if self.dead else "❓"} <- current pos')
-            else:
-                magazine.append('⚫' if i<self.shots_fired else '❓')
+            if self.is_playing:
+                if i == self.shots_fired: magazine.append(f'{"🔴" if self.dead else "❓"} <- current pos')
+                else: magazine.append('⚫' if i<self.shots_fired else '❓')
+            else: magazine.append('⚫' if i!=self.shots_fired else '🔴 <- current pos')
+            
         embed.add_field(name='Magazine', value='\n'.join(magazine))
 
         prize_dis = []
@@ -263,10 +264,14 @@ class Death(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def roulette(self, ctx: commands.Context, amount: int|str=100):
         user = self.get_user(ctx.author.id)
+        if user.credit<=0:
+            return await ctx.reply(f"Deo co tien thi cuc")
         if amount == "all":
             amount = user.credit
-        if amount < 100:
+        if amount < 690:
             return await ctx.reply(f"Số tiền phải ít nhất là {money_beauty(100)}")
+        amount = min(amount, 6942000)
+        
         game = RouletteGame(ctx, amount, user, self.db, self.bot)
         await game.start_game()
 

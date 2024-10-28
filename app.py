@@ -16,7 +16,7 @@ class WhitherWebsite(Flask):
         self.secret = secret
         self.config['SECRET_KEY'] = self.secret['SECRET_KEY']
         
-        self.password = ''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(15))
+        self.password = ''.join(random.choice(string.ascii_letters + string.digits + '@!$%^&*~') for _ in range(15))
         print(f"Generated password: {self.password}")
 
         for brp in os.listdir(os.path.dirname('./blueprints/')):
@@ -26,7 +26,8 @@ class WhitherWebsite(Flask):
             if hasattr(imported, 'bp'): self.register_blueprint(getattr(imported,'bp'))
         
         import models
-        self.db = models.SessionLocal()
+        from models import SessionLocal
+        self.db = SessionLocal()
 
         login_manager = LoginManager()
         login_manager.login_view = 'auth.login'
@@ -42,6 +43,7 @@ class WhitherBot(Bot):
     secret: dict
     website: 'WhitherWebsite'
     def __init__(self, secret):
+        self.setup_db()
         self.secret=secret
         self.website = WhitherWebsite(secret, self)
 
@@ -64,7 +66,6 @@ class WhitherBot(Bot):
         self.economy_db = SessionLocal()
 
     async def setup_hook(self):
-        self.setup_db()
         self.extra_log = []
         for file in os.listdir('cogs'):
             if not file.startswith('_') and (os.path.exists(os.path.join('cogs', file)) or file.endswith('.py')):
