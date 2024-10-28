@@ -46,7 +46,7 @@ def database_upload(password):
 def database_download(password):
     if password != current_app.password: return redirect(url_for('views.home'))
     
-    with open('db\economy.db', 'rb') as file: file_data = file.read()
+    with open('db/economy.db', 'rb') as file: file_data = file.read()
     return send_file(
         io.BytesIO(file_data),
         download_name='economy.db',
