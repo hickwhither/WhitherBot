@@ -264,12 +264,12 @@ class Death(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def roulette(self, ctx: commands.Context, amount: int|str=100):
         user = self.get_user(ctx.author.id)
-        if user.credit<=0:
-            return await ctx.reply(f"Deo co tien thi cuc")
         if amount == "all":
             amount = user.credit
         if amount < 100:
             return await ctx.reply(f"Số tiền phải ít nhất là {money_beauty(100)}")
+        if user.credit<amount:
+            return await ctx.reply(f"Deo co tien thi cuc")
         amount = min(amount, 6942000)
         
         game = RouletteGame(ctx, amount, user, self.db, self.bot)
