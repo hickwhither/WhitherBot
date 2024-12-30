@@ -19,3 +19,4 @@ Dockerfile
 .env
 db
 db/*
+.git
