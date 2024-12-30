@@ -7,7 +7,6 @@ import time, datetime
 import discord
 from discord import Message
 from discord.ext import commands
-from flask import *
 
 async def setup(bot) -> None:
     await bot.add_cog(General(bot))

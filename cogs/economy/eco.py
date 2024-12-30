@@ -96,3 +96,12 @@ f"Số dư hiện tại của {recipient.mention}: {money_beauty(receiver.credit
         await ctx.send(embed=embed)    
     
     
+    @commands.command(name="daily", help="Nhận tiền hàng ngày")
+    @commands.cooldown(1, 86400, commands.BucketType.user)
+    async def daily(self, ctx):
+        user = self.get_user(ctx.author.id)
+        user.credit += 500
+        self.db.commit()
+        await ctx.reply(f"🎉 | Bạn đã nhận được {money_beauty(500)} hàng ngày! Bạn hiện có {money_beauty(user.credit)}"
+                        f"\nNhớ quay lại sau 24h nữa nhé!")
+        

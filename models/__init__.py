@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.mutable import MutableList, MutableDict, MutableSet
 from sqlalchemy.orm import mapped_column, Mapped, relationship, sessionmaker
 from sqlalchemy import *
+import os
 
 Base = declarative_base()
 
@@ -50,6 +51,8 @@ class UserModel(Base):
 
             
 
+if not os.path.exists('db'):
+    os.makedirs('db')
 DATABASE_URL = 'sqlite:///db/economy.db'
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

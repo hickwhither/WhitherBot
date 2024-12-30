@@ -1,4 +1,3 @@
-
 logs
 logs/*
 log.txt
@@ -17,6 +16,6 @@ __pycache__/*
 Dockerfile
 .dockerignore
 
-.secret.json
+.env
 db
 db/*
