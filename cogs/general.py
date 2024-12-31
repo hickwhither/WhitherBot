@@ -27,10 +27,7 @@ class General(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def uptime(self, ctx):
         """How long I've been up"""
-        current_time = time.time()
-        uptime_seconds = int(current_time - self.bot.start_time)
-        uptime_str = str(datetime.utcfromtimestamp(uptime_seconds).strftime('%H:%M:%S'))
-        await ctx.send(f"Bot đã online trong: {uptime_str}")
+        await ctx.send(f"Bot đã online: <t:{int(self.bot.start_time)}:R>")
 
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -38,5 +35,8 @@ class General(commands.Cog):
         """Get my invite link"""
         permissions = discord.Permissions(permissions=8)
         invite_url = discord.utils.oauth_url(self.bot.user.id, permissions=permissions)
-        await ctx.send(f"Invite me by this link: {invite_url}")
+        button = discord.ui.Button(label="Invite me", url=invite_url)
+        view = discord.ui.View()
+        view.add_item(button)
+        await ctx.send("Click the button below to invite me:", view=view)
 

@@ -5,10 +5,10 @@ from discord.ext import commands
 import aiohttp
 import urllib
 import requests
-from bs4 import *
 import json
 import random
 from datetime import *
+from bs4 import BeautifulSoup
 
 async def setup(bot) -> None:
     await bot.add_cog(api(bot))

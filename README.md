@@ -11,7 +11,6 @@ Usage:
 python main.py
 ```
 
-## 2024w12.30
-- small fix 🥲
-- web removal
-- added daily
+## 2024w12.31
+- uptime fix
+- deptrai came back

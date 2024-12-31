@@ -4,10 +4,7 @@ from discord.ext import commands
 from PIL import ImageDraw, ImageFont, Image
 import io, re, textwrap
 
-from options import HAVE_PILLOW
-
 async def setup(bot) -> None:
-    if not HAVE_PILLOW: return
     await bot.add_cog(ImageCog(bot))
 
 PATTERNS = {
@@ -31,27 +28,35 @@ class ImageCog(commands.Cog):
     
     @commands.command()
     @commands.cooldown(10, 60, commands.BucketType.user)
-    async def deptrai(self, ctx, *, msg: str):
+    async def deptrai(self, ctx: commands.Context):
         """Tạo giấy chứng nhận cho bạn =)"""
         await ctx.typing()
-        msg.split()
         
-        img = Image.open('./assets/images/deptraibg.png')
-        msg = no_accent_vietnamese(msg)
+        img = Image.open('./assets/images/chungnhan.png')
+        msg = no_accent_vietnamese(ctx.author.display_name)
         para = list(textwrap.wrap(msg, width = 35)[:6])
 
         MAX_W, MAX_H = img.size
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype('./assets/fonts/HappySwirly-KVB7l.ttf', 60, encoding='utf-8')
+        font = ImageFont.truetype('./assets/fonts/Happy Swirly.ttf', 150, encoding='utf-8')
 
-        current_h, pad = 420, 50
+        current_h, current_x = 619, 180
+        pad = 50
         for line in para:
             w = draw.textlength(line, font = font)
-            draw.text(((MAX_W - w) / 2, current_h), line, fill = 'black', font = font)
+            draw.text((current_x, current_h), line, fill = 'pink', font = font)
         del draw
 
+        img_url = ctx.author.display_avatar.url
+        avatar_data = await ctx.author.display_avatar.read()
+        avatar = Image.open(io.BytesIO(avatar_data)).convert("RGBA")
+        avatar = avatar.resize((500, 500))
 
-        # ko hiểu thì nhớ 1 cách máy móc cx đc :L dù sau cx chỉ có cách này
+        avatar_x = 1550 - avatar.width // 2
+        avatar_y = 558 - avatar.height // 2
+        img.paste(avatar, (avatar_x, avatar_y), avatar)
+
+
         buffer = io.BytesIO()
         img.save(buffer, 'png')
         buffer.seek(0)

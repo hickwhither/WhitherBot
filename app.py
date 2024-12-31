@@ -1,20 +1,22 @@
 import os, importlib
 import time, random, string
 import discord
-from discord import Message
+from discord import Message, Object
 from discord.ext.commands import Bot
+
         
 
 class WhitherBot(Bot):
     secret: dict
-    def __init__(self, id, owners, prefix):
+    def __init__(self, id, prefix):
+        self.start_time = time.time()
         self.setup_db()
+        print(prefix)
         self.default_prefix = prefix
         super().__init__(
             command_prefix = self.default_prefix,
             intents = discord.Intents.all(),
-            application_id = id,
-            owner_ids = owners
+            application_id = id
         )
     
     async def on_message(self, message: Message):
@@ -40,9 +42,10 @@ class WhitherBot(Bot):
         print()
         for extra in self.extra_log:
             print(f"From {extra[0]}:\n{extra[1]}")
+        
+        await self.is_owner(Object(0))
 
     async def on_ready(self):
         print(f'=== Logged as {self.user} ({self.user.id}) ===')
-        self.start_time = time.time()
     
     
